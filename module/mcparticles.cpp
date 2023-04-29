@@ -1,5 +1,6 @@
 #include "mcparticles.hpp"
 #include "physconst.hpp"
+#include "massconst.hpp"
 #include<vector>
 #include<cmath>
 #include<numbers>
@@ -170,12 +171,12 @@ void MCParticles::Scatter(double Temperature,double dt,double min_structure) {
 
 //弾性散乱(速さ変化なし,速度ベクトル方向変化)
 void MCParticles::Elastic_scattering() {
-    std::uniform_real_distribution<> randcosth(-1, 1);
+	std::uniform_real_distribution<> randcosth(-1, 1);
 	double costh = randcosth(physconst::mtrand);
 	double phi = randcosth(physconst::mtrand) * std::numbers::pi;
 	double sinth = std::sqrt(1 - costh * costh);
-    this->velocity_pointing[0] = sinth * std::cos(phi);
+	this->velocity_pointing[0] = sinth * std::cos(phi);
 	this->velocity_pointing[1] = sinth * std::sin(phi);
 	this->velocity_pointing[2] = costh;
-    return;
+	return;
 }

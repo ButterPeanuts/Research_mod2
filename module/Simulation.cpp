@@ -5,6 +5,7 @@
 #include<omp.h>
 #include"Simulation.hpp"
 #include"physconst.hpp"
+#include"massconst.hpp"
 #include"Integral.h"
 #include"mcparticles.hpp"
 Simulation::Simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh) {

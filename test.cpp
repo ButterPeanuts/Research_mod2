@@ -6,6 +6,7 @@
 #include"module/mcparticles.hpp"
 #include"module/Simulation.hpp"
 #include"module/Integral.h"
+#include"module/massconst.hpp"
 
 int main(){
 	massconst::Ndiv = 48;
