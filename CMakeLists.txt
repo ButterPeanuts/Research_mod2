@@ -36,12 +36,14 @@ target_link_libraries(main spdlog::spdlog)
 
 include_directories(module)
 
-add_library(integral STATIC module/Integral.cpp)
-add_library(physconst STATIC module/physconst.cpp)
-add_library(mcparticles STATIC module/mcparticles.cpp)
 add_library(simulation STATIC module/Simulation.cpp)
+add_library(mcparticles STATIC module/mcparticles.cpp)
+add_library(physconst STATIC module/physconst.cpp)
+add_library(massconst STATIC module/massconst.cpp)
+add_library(integral STATIC module/Integral.cpp)
 
 target_link_libraries(main simulation)
 target_link_libraries(main mcparticles)
 target_link_libraries(main physconst)
+target_link_libraries(main massconst)
 target_link_libraries(main integral)
