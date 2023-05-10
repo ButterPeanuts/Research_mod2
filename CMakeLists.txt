@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.26)
 
-project(cmaketest)
+set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_C_COMPILER "gcc")
 
-set(CMAKE_CXX_COMPILER g++)
-set(CMAKE_C_COMPILER gcc)
+project(cmaketest)
 
 
 #---設定
