@@ -48,4 +48,14 @@ class band{
 	 * @details かなり純粋なgetter これがないと棄却法にO(n)かかる
 	*/
 	virtual double domcp_max_getter() = 0;
+	
+	/*!
+	 * @brief 縦波か横波かを取得する関数
+	*/
+	virtual wave_direction directions_getter() = 0;
+	
+	/*!
+	 * @brief 音響波か光学波か取得する関数
+	*/
+	virtual wave_mode mode_getter() = 0;
 };
