@@ -17,7 +17,15 @@ class curve{
 	/*! プロットデータを表す */
 	std::vector<std::pair<double, double>> table;
 	
+	/*!
+	 * @brief コンストラクタ
+	*/
 	curve();
+	
+	/*!
+	 * @brief コンストラクタ ファイルからのデータを予め読む
+	 * @param filename 読み込むファイル名を指定する
+	*/
 	curve(std::string filename);
 	
 	/*!
