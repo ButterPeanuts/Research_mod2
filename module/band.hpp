@@ -7,6 +7,18 @@
 #pragma once
 
 /*!
+ * @enum wave_direction
+ * @brief 縦波か横波か
+*/
+enum wave_direction{longitudinal, transverse};
+
+/*!
+ * @enum wave_mode
+ * @brief 音響モードか光学モードか
+*/
+enum wave_mode{acoustic, optical};
+
+/*!
  * @brief 粒子が存在する? バンドについての情報のクラス
  * @details 粒子が存在する? 従う? バンドについての情報のクラス
  * バンドが関連する物質定数, 定関数の類を表としてまとめる
