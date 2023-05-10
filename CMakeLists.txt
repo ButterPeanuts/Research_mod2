@@ -32,7 +32,6 @@ add_executable(main test.cpp)
 set(spdlog_DIR "spdlog/build")
 find_package(spdlog REQUIRED)
 include_directories(${spdlog_SOURCE_DIR})
-target_link_libraries(main spdlog::spdlog)
 
 include_directories(module)
 
@@ -47,3 +46,4 @@ target_link_libraries(main mcparticles)
 target_link_libraries(main physconst)
 target_link_libraries(main massconst)
 target_link_libraries(main integral)
+target_link_libraries(main spdlog::spdlog)
