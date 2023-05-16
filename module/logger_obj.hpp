@@ -16,8 +16,9 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <string>
+#include <logger.hpp>
 namespace mc_sim{
-	class logger_obj{
+	class logger_obj : public logger<logger_obj>{
 		private:
 			/*! spdlogのロガー このクラスが直接操作するところ */
 			std::shared_ptr<spdlog::logger> logger_interface;
