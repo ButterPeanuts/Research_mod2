@@ -13,10 +13,11 @@
  * @brief 二次元グラフ上にプロットできるデータを示すオブジェクトのクラス
 */
 class curve{
-	public:
+	private:
 	/*! プロットデータを表す */
 	std::vector<std::pair<double, double>> table;
 	
+	public:
 	/*!
 	 * @brief コンストラクタ
 	*/
