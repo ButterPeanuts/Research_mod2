@@ -12,6 +12,7 @@
 #include <string>
 namespace mc_sim{
 	class logger{
+		public:
 		/*!
 		 * @brief ロガーのコピー
 		 * @details コピーというほどではないが, 同じシンクを持つロガーを作るためのメンバ
