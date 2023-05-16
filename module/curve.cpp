@@ -2,22 +2,18 @@
 #include<utility>
 #include<string>
 #include<curve.hpp>
+#include<logger.hpp>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/basic_file_sink.h>
 
-curve::curve(){
+curve::curve(mc_sim::logger& newlogger) : logger(newlogger){
 	this->table = std::vector<std::pair<double, double>>();
-	/* auto logger = spdlog::basic_logger_mt("logger", "log/log.log"); */
-	/* logger -> set_level(spdlog::level::debug); */
-	/* std::cout << "Hello, World" << std::endl; */
-	/* std::cout << "BUILD_TYPE=" BUILD_TYPE << std::endl; */
-	/* spdlog::info("Hello, World"); */
-	/* logger->info("Hello, World"); */
-	/* logger->debug("That is japanse true KUSA movie."); */
+	this->logger = newlogger;
+	this->logger.info("The curve is born now!");
 }
 
-curve::curve(std::string filename){
+curve::curve(mc_sim::logger& newlogger, std::string filename) : logger(newlogger){
 	this->table = std::vector<std::pair<double, double>>();
+	this->logger = newlogger;
+	this->logger.info("The curve is born now!");
 	this->file_input(filename);
 }

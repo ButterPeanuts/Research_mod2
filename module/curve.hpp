@@ -8,6 +8,7 @@
 #include<vector>
 #include<utility>
 #include<string>
+#include<logger.hpp>
 
 /**
  * @brief 二次元グラフ上にプロットできるデータを示すオブジェクトのクラス
@@ -17,17 +18,19 @@ class curve{
 	/*! プロットデータを表す */
 	std::vector<std::pair<double, double>> table;
 	
+	mc_sim::logger& logger;
+	
 	public:
 	/*!
 	 * @brief コンストラクタ
 	*/
-	curve();
+	curve(mc_sim::logger& newlogger);
 	
 	/*!
 	 * @brief コンストラクタ ファイルからのデータを予め読む
 	 * @param filename 読み込むファイル名を指定する
 	*/
-	curve(std::string filename);
+	curve(mc_sim::logger& newlogger, std::string filename);
 	
 	/*!
 	 * @brief プロットデータを補間して返す
