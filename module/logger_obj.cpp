@@ -1,5 +1,5 @@
 #include <spdlog/spdlog.h>
-#include <logger.hpp>
+#include <logger_obj.hpp>
 
 using namespace mc_sim;
 
@@ -27,7 +27,7 @@ void logger_obj::set_interface(std::string logger_name){
 }
 
 //thisのシンクを流用して作ったロガーを返す
-logger_obj logger_obj::copy_samesink(std::string logger_name){
+logger_obj& logger_obj::copy_samesink(std::string logger_name){
 	logger_obj samesinklogger(logger_name, this->logger_sink);
 	return samesinklogger;
 }

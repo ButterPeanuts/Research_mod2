@@ -18,7 +18,7 @@
 #include <string>
 #include <logger.hpp>
 namespace mc_sim{
-	class logger_obj : public logger<logger_obj>{
+	class logger_obj : public logger{
 		private:
 			/*! spdlogのロガー このクラスが直接操作するところ */
 			std::shared_ptr<spdlog::logger> logger_interface;
@@ -52,7 +52,7 @@ namespace mc_sim{
 			 * @param logger_name ロガーの表示名
 			 * @return mc_sim::logger_obj 同じシンクを持つが, thisとは違うロガー
 			*/
-			mc_sim::logger_obj copy_samesink(std::string logger_name);
+			mc_sim::logger_obj& copy_samesink(std::string logger_name);
 			
 			void debug(std::string data);
 			void info(std::string data);
