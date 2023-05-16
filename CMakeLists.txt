@@ -41,7 +41,7 @@ add_library(physconst STATIC module/physconst.cpp)
 add_library(massconst STATIC module/massconst.cpp)
 add_library(integral STATIC module/Integral.cpp)
 add_library(logger STATIC module/logger.cpp)
-target_link_libraries(logger PRIVATE spdlog)
+target_link_libraries(logger PRIVATE spdlog::spdlog)
 
 target_link_libraries(main simulation)
 target_link_libraries(main mcparticles)

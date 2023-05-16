@@ -20,11 +20,23 @@ namespace mc_sim{
 	class logger{
 		private:
 			/*! spdlogのロガー このクラスが直接操作するところ */
-			spdlog::shared_ptr<spdlog::logger> logger_interface;
+			std::shared_ptr<spdlog::logger> logger_interface;
 			
 			/*! spdlogのシンク ロガーからロガーを作るときに使う */
-			spdlog::shared_ptr<spdlog::sinks::basic_file_sink_mt> logger_sink;
-		
+			std::shared_ptr<spdlog::sinks::basic_file_sink_mt> logger_sink;
+			
+			/*!
+			 * @brief コンストラクタ
+			 * @param logger_name ロガーの表示名
+			 * @param sink ロガーのシンク
+			*/
+			logger(std::string logger_name, std::shared_ptr<spdlog::sinks::basic_file_sink_mt> sink);
+			
+			/*!
+			 * @brief 設定済みのシンクからロガーインターフェースを設定する
+			 * @param logger_name ロガーの表示名
+			*/
+			void set_interface(std::string logger_name);
 		public:
 			/*!
 			 * @brief コンストラクタ
@@ -41,10 +53,10 @@ namespace mc_sim{
 			*/
 			mc_sim::logger copy_samesink(std::string logger_name);
 			
-			mc_sim::logger debug(std::string data);
-			mc_sim::logger info(std::string data);
-			mc_sim::logger warn(std::string data);
-			mc_sim::logger error(std::string data);
-			mc_sim::logger critical(std::string data);
+			void debug(std::string data);
+			void info(std::string data);
+			void warn(std::string data);
+			void error(std::string data);
+			void critical(std::string data);
 	};
 }
