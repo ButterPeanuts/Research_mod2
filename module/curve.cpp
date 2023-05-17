@@ -3,6 +3,7 @@
 #include<string>
 #include<algorithm>
 #include<cmath>
+#include<limits>
 #include<curve.hpp>
 #include<logger.hpp>
 
@@ -31,3 +32,16 @@ double curve::itpl_getter(double x){
 	double segmenttime = (x - (right - 1)->first) / (right->first - (right - 1)->first);
 	return std::lerp((right - 1)->second, right->second, segmenttime);
 }
+
+double curve::max(){
+	//負無限大
+	auto maxy = this->table.begin();
+	for(auto i = this->table.begin(); i < (this->table.end()); i++){
+		if (maxy->second < i->second){
+			maxy = i;
+		}
+	}
+	return maxy->second;
+}
+
+
