@@ -4,6 +4,8 @@
 #include<algorithm>
 #include<cmath>
 #include<limits>
+#include<fstream>
+#include<sstream>
 #include<curve.hpp>
 #include<logger.hpp>
 
@@ -46,4 +48,41 @@ double curve::max(){
 
 void curve::append(double x, double y){
 	this->table.push_back({x, y});
+}
+
+void curve::file_output(std::string filename){
+	std::ofstream file(filename);
+	if (!file) {
+		this->logger.warn(filename + "の保存に失敗しました");
+		return;
+	}
+	
+	for (auto i = this->table.begin(); i < this->table.end(); i++) {
+		file << i->first << "," << i->second << std::endl;
+	}
+	
+	file.close();
+	this->logger.info(filename + "の保存に成功しました");
+}
+
+void curve::file_input(std::string filename){
+	std::ifstream file(filename);
+	if (!file) {
+		this->logger.warn(filename + "の読み込みに失敗しました");
+		return;
+	}
+	std::string string_buffer;
+	while (std::getline(file, string_buffer)) {
+		std::string separated_buffer;
+		std::istringstream separator(string_buffer);
+		
+		std::getline(separator, separated_buffer, ',');
+		double partx = std::stod(separated_buffer);
+		std::getline(separator, separated_buffer, ',');
+		double party = std::stod(separated_buffer);
+		
+		this->table.push_back({partx, party});
+	}
+	file.close();
+	this->logger.info(filename + "の読み込みに成功しました");
 }
