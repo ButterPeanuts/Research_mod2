@@ -35,11 +35,13 @@ class curve{
 	/*!
 	 * @brief プロットデータを補間して返す
 	 * @param x 独立変数を指定する
+	 * @return double 指定された独立変数xに対応する従属変数yの値
 	*/
 	double itpl_getter(double x);
 	
 	/*!
 	 * @brief 従属変数方データの最大値を返す
+	 * @return 従属変数方データの最大値
 	*/
 	double max();
 	
@@ -48,7 +50,7 @@ class curve{
 	 * @param x 独立変数を指定する
 	 * @param y 従属変数を指定する
 	*/
-	double append(double x, double y);
+	void append(double x, double y);
 	
 	/*!
 	 * @brief データをファイルから読み込む
