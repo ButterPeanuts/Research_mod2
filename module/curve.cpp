@@ -44,4 +44,6 @@ double curve::max(){
 	return maxy->second;
 }
 
-
+void curve::append(double x, double y){
+	this->table.push_back({x, y});
+}
