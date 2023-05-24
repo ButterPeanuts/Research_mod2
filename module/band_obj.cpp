@@ -1,3 +1,4 @@
+#include<random>
 #include "modeenum.hpp"
 #include "band_obj.hpp"
 #include <logger.hpp>
@@ -13,16 +14,12 @@ double band_obj::dos_getter(double omega){
 	return this->dos.itpl_getter(omega);
 }
 
-double band_obj::dos_omega_min_getter(){
-	return this->dos.left_edge();
+std::uniform_real_distribution<> band_obj::dos_omega_distribution_getter(){
+	return std::uniform_real_distribution<>(this->dos.left_edge(), this->dos.right_edge());
 }
 
-double band_obj::dos_omega_max_getter(){
-	return this->dos.right_edge();
-}
-
-double band_obj::dos_max_getter(){
-	return this->dos_max;
+std::uniform_real_distribution<> band_obj::dos_distribution_getter(){
+	return std::uniform_real_distribution<>(0, this->dos_max);
 }
 
 double band_obj::gvelocity_getter(double omega){
@@ -33,16 +30,12 @@ double band_obj::domcp_getter(double omega){
 	return this->domcp.itpl_getter(omega);
 }
 
-double band_obj::domcp_omega_min_getter(){
-	return this->domcp.left_edge();
+std::uniform_real_distribution<> band_obj::domcp_omega_distribution_getter(){
+	return std::uniform_real_distribution<>(this->domcp.left_edge(), this->domcp.right_edge());
 }
 
-double band_obj::domcp_omega_max_getter(){
-	return this->domcp.right_edge();
-}
-
-double band_obj::domcp_max_getter(){
-	return this->domcp_max;
+std::uniform_real_distribution<> band_obj::domcp_distribution_getter(){
+	return std::uniform_real_distribution<>(0, this->domcp_max);
 }
 
 wave_direction band_obj::directions_getter(){
