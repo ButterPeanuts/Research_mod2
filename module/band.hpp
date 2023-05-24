@@ -20,6 +20,21 @@ class band{
 	virtual double dos_getter(double omega) = 0;
 	
 	/*!
+	 * @brief dos_getterのomegaとして指定しうる最小値を取得する関数
+	*/
+	virtual double dos_omega_min_getter() = 0;
+	
+	/*!
+	 * @brief dos_getterのomegaとして指定しうる最大値値を取得する関数
+	*/
+	virtual double dos_omega_max_getter() = 0;
+	
+	/*!
+	 * @brief 状態密度の最大値を取得する関数
+	*/
+	virtual double dos_max_getter() = 0;
+	
+	/*!
 	 * @brief 群速度(Group velocity)を取得する関数
 	 * @param omega 角周波数\f$\omega\f$
 	*/
@@ -31,6 +46,16 @@ class band{
 	 * @param omega 角周波数\f$\omega\f$
 	*/
 	virtual double domcp_getter(double omega) = 0;
+	
+	/*!
+	 * @brief domcp_getterのomegaとして指定しうる最小値を取得する関数
+	*/
+	virtual double domcp_omega_min_getter() = 0;
+	
+	/*!
+	 * @brief domcp_getterのomegaとして指定しうる最大値を取得する関数
+	*/
+	virtual double domcp_omega_max_getter() = 0;
 	
 	/*!
 	 * @brief モンテカルロ粒子密度(Density of MonteCalro Particle)の最大値を取得する関数
