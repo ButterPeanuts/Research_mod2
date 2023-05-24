@@ -43,9 +43,9 @@ MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temper
 		if (result.first) {
 			//採用なら...
 			this->angular_frequency = result.second;
-			this->bandnum = pr;
+			this->band_current = selectedband;
 			this->logger.debug("My angular frequency is " + std::to_string(this->angular_frequency));
-			this->logger.debug("My band is " + std::to_string(this->bandnum));
+			this->logger.debug("My band is " + std::to_string(this->band_current - bandinj.begin()));
 			break;
 		}
 	}
@@ -59,7 +59,8 @@ MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temper
 void MCParticles::Nextstep(double dt) {
 	//これもバンドクラスに統合したほうが良さそう
 	//(https://www.notion.so/MCParticle-761aeb843f10432d81f7b255734779fe?pvs=4)
-	double velocity = massconst::Si_group_velocity(angular_frequency,bandnum);
+	/* double velocity = massconst::Si_group_velocity(angular_frequency,bandnum); */
+	double velocity = this->
 	
 	for (int i = 0; i < MCParticles::dimension; i++) {
 		position[i] += dt * velocity_pointing[i] * velocity;

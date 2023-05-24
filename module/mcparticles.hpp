@@ -30,9 +30,10 @@ namespace mc_particles{
 			/*! 電荷q */
 			double charge = 0;
 			
-			/*! バンド番号 参照する分散関係など */
-			int bandnum = 0;
+			/*! 現在のバンド 参照する分散関係など */
+			std::vector<band>::iterator band_current;
 			
+			/*! 粒子が取りうるすべてのバンド情報 */
 			std::vector<band> banddata;
 			
 			mc_sim::logger& logger;
