@@ -51,19 +51,14 @@ MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temper
 	}
 	
 	//初期状態r決定
-	this->position[0] = 0;
-	this->position[1] = 0;
-	this->position[2] = 0;
+	this->position = std::vector<double>(MCParticles::dimension, 0);
 }
 
 void MCParticles::Nextstep(double dt) {
-	//これもバンドクラスに統合したほうが良さそう
-	//(https://www.notion.so/MCParticle-761aeb843f10432d81f7b255734779fe?pvs=4)
-	/* double velocity = massconst::Si_group_velocity(angular_frequency,bandnum); */
-	double velocity = this->
+	double velocity = this->band_current->gvelocity_getter(this->angular_frequency);
 	
 	for (int i = 0; i < MCParticles::dimension; i++) {
-		position[i] += dt * velocity_pointing[i] * velocity;
+		this->position[i] += dt * this->velocity_pointing[i] * velocity;
 	}
 }
 
