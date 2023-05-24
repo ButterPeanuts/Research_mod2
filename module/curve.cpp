@@ -46,6 +46,14 @@ double curve::max(){
 	return maxy->second;
 }
 
+double curve::left_edge(){
+	return this->table.begin()->first;
+}
+
+double curve::right_edge(){
+	return (this->table.end() - 1)->first;
+}
+
 void curve::append(double x, double y){
 	this->table.push_back({x, y});
 }

@@ -46,6 +46,18 @@ class curve{
 	double max();
 	
 	/*!
+	 * @brief 独立変数方データの最小値を返す
+	 * @return 独立変数方データの最小値
+	*/
+	double left_edge();
+	
+	/*!
+	 * @brief 独立変数方データの最大値を返す
+	 * @return 独立変数方データの最大値
+	*/
+	double right_edge();
+	
+	/*!
 	 * @brief データを追加する
 	 * @param x 独立変数を指定する
 	 * @param y 従属変数を指定する
