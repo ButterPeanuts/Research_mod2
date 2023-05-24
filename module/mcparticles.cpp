@@ -26,32 +26,26 @@ MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temper
 	//初期状態omega,band決定
 	//https://github.com/ButterPeanuts/Research_mod2/issues/9
 	//このissueの通り, DOSテーブル範囲外の積分は無視できるとして組まれている
-	
-	//棄却法用distributionリスト
-	std::vector<std::uniform_real_distribution<>> randx;
-	std::vector<std::uniform_real_distribution<>> randf;
-	//リストに各バンドのdistributionを設定するためのlambda
-	auto dist_set = [&randx, &randf](band& x){
-		//仮 bandDOSの独立変数
-		std::uniform_real_distribution<> temp_randx(x.dos_omega_min_getter(), x.dos_omega_max_getter());
-		std::uniform_real_distribution<> temp_randf(0, x.dos_max_getter());
-		randx.push_back(temp_randx);
-		randf.push_back(temp_randf);
-	};
-	//リストにdistributionを入れる
-	for_each(this->banddata.begin(), this->banddata.end(), dist_set);
-	
+	//
 	//バンド種類用distribution
 	std::uniform_int_distribution<> randp(0, bandinj.size() - 1);
 	
 	for (;;) {
+		//どのバンド?
 		int pr = randp(physconst::mtrand);
 		auto selectedband = (bandinj.begin() + pr);
-		//また変えます maxではなくdistributionをbandに出させればいいじゃない
-		auto result = physconst::vonNeumann_rejection(selectedband->
-		if (fr <= P(xr, pr)) {
-			this->angular_frequency = xr;
+		//結果
+		std::function<double(double)> dos_func = [selectedband](double omega) -> double{
+			return selectedband->dos_getter(omega);
+		};
+		auto result = physconst::vonNeumann_rejection(dos_func, selectedband->dos_omega_distribution_getter(), selectedband->dos_distribution_getter());
+		
+		if (result.first) {
+			//採用なら...
+			this->angular_frequency = result.second;
 			this->bandnum = pr;
+			this->logger.debug("My angular frequency is " + std::to_string(this->angular_frequency));
+			this->logger.debug("My band is " + std::to_string(this->bandnum));
 			break;
 		}
 	}

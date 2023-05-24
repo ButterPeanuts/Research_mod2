@@ -9,6 +9,7 @@
 #include<cmath>
 #include<iostream>
 #include<utility>
+#include<functional>
 /*!
  * @brief 物理定数, 他ヘルパー
  * @details 物理定数やヘルパー関数を収めるクラス
@@ -32,5 +33,5 @@ class physconst {
 		 * @param fdist 確率密度の範囲
 		 * @return <結果, 採用ならその時の確率変数>のタプル
 		*/
-		static std::pair<bool, double> vonNeumann_rejection(double (*f)(double), std::uniform_real_distribution<> xdist, std::uniform_real_distribution<> fdist);
+		static std::pair<bool, double> vonNeumann_rejection(std::function<double(double)> f, std::uniform_real_distribution<> xdist, std::uniform_real_distribution<> fdist);
 };
