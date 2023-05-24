@@ -6,6 +6,8 @@
 */
 #pragma once
 #include<vector>
+#include<band.hpp>
+#include<logger.hpp>
 /**
  * @brief モンテカルロ粒子のクラス
  * @details モンテカルロ粒子 略してMCParticle
@@ -30,6 +32,10 @@ namespace mc_particles{
 			
 			/*! バンド番号 参照する分散関係など */
 			int bandnum = 0;
+			
+			std::vector<band> banddata;
+			
+			mc_sim::logger& logger;
 		
 		public :
 			/*! 変位 */
@@ -37,10 +43,12 @@ namespace mc_particles{
 			
 			/*!
 			 * @brief コンストラクタ
+			 * @param newlogger ロガー
 			 * @param Energy 粒子(MC粒子にあらず)のエネルギー \f$\omega\hbar\f$
 			 * @param Temperature 不明 cppを解析されたい
+			 * @param bandinj バンドデータの注入
 			*/
-			MCParticles(double Energy, double Temperature);
+			MCParticles(mc_sim::logger& newlogger, double Energy, double Temperature, std::vector<band> bandinj);
 			
 			/*!
 			 * @brief 時間dtの後の状態にMC粒子を遷移させる
