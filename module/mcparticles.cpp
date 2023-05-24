@@ -24,47 +24,31 @@ MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temper
 	this->Elastic_scattering();
 	
 	//初期状態omega,band決定
-	//状態密度の情報はMCParticleごとにどの値を保持するか変わりそうなので
-	//メンバーを追加しておく必要がある
-	//(https://www.notion.so/MCParticle-761aeb843f10432d81f7b255734779fe?pvs=4)
-	//
 	//https://github.com/ButterPeanuts/Research_mod2/issues/9
 	//このissueの通り, DOSテーブル範囲外の積分は無視できるとして組まれている
+	
+	//棄却法用distributionリスト
 	std::vector<std::uniform_real_distribution<>> randx;
 	std::vector<std::uniform_real_distribution<>> randf;
-	auto dist_set = [randx, randf](band& x){
+	//リストに各バンドのdistributionを設定するためのlambda
+	auto dist_set = [&randx, &randf](band& x){
 		//仮 bandDOSの独立変数
-		std::uniform_real_distribution<> temp_randx(0, 0);
-		
+		std::uniform_real_distribution<> temp_randx(x.dos_omega_min_getter(), x.dos_omega_max_getter());
+		std::uniform_real_distribution<> temp_randf(0, x.dos_max_getter());
+		randx.push_back(temp_randx);
+		randf.push_back(temp_randf);
 	};
+	//リストにdistributionを入れる
 	for_each(this->banddata.begin(), this->banddata.end(), dist_set);
-	//棄却法のために最大値を出しているところ
-	//無駄が多い
-	//事前にテーブル形式で持っておくべき
-	//(https://www.notion.so/MCParticle-761aeb843f10432d81f7b255734779fe?pvs=4)
-	double maxdis = 0;
-	for (auto i = massconst::Si_DOS_LA.begin(); i < massconst::Si_DOS_LA.end(); i++) {
-		double P = (*i)[1] * physconst::dirac * (*i)[0] / Energy / (exp(physconst::dirac * (*i)[0] / physconst::boltzmann / Temperature) - 1);
-		if (maxdis > P)maxdis = P;
-	}
 	
-	//ただ単純記憶ではダメそう
-	//なにせDOS_interpolationがあるので
-	//ていうかDOS_interpolationはバンドクラスに移管できそう
-	std::uniform_real_distribution<> randf(0, maxdis);
-	std::uniform_int_distribution<> randp(0, 2);
+	//バンド種類用distribution
+	std::uniform_int_distribution<> randp(0, bandinj.size() - 1);
+	
 	for (;;) {
-		double xr = randx(physconst::mtrand);
-		double fr = randf(physconst::mtrand);
 		int pr = randp(physconst::mtrand);
-		auto P = [=](double omega, int p) {
-			if (p == 2) {
-				return massconst::DOS_interpolation(massconst::Si_DOS_LA, omega) * omega * physconst::dirac / Energy / (exp(physconst::dirac * omega / physconst::boltzmann / Temperature) - 1);
-			}
-			else {
-				return massconst::DOS_interpolation(massconst::Si_DOS_TA, omega) * omega * physconst::dirac / Energy / (exp(physconst::dirac * omega / physconst::boltzmann / Temperature) - 1);
-			}
-		};
+		auto selectedband = (bandinj.begin() + pr);
+		//また変えます maxではなくdistributionをbandに出させればいいじゃない
+		auto result = physconst::vonNeumann_rejection(selectedband->
 		if (fr <= P(xr, pr)) {
 			this->angular_frequency = xr;
 			this->bandnum = pr;

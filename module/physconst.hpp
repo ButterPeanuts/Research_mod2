@@ -8,6 +8,7 @@
 #include<random>
 #include<cmath>
 #include<iostream>
+#include<utility>
 /*!
  * @brief 物理定数, 他ヘルパー
  * @details 物理定数やヘルパー関数を収めるクラス
@@ -25,11 +26,11 @@ class physconst {
 		/*! 一様乱数発生器 */
 		static std::mt19937_64 mtrand;
 		/*!
-		 * @brief ノイマンの棄却法による乱数発生器
-		 * @param (*f)(double) 乱数分布, 確率変数を引数とし, 確率密度を返す
-		 * @param xi 確率変数の下限
-		 * @param xs 確率変数の上限
-		 * @param fm 確率密度の上限
+		 * @brief ノイマンの棄却, 関数を呼び出すたびに棄却か採用かを返す
+		 * @param (*f)(double) 乱数分布, 確率変数を引数とし, 確率密度を返す関数
+		 * @param xdist 確率変数の範囲
+		 * @param fdist 確率密度の範囲
+		 * @return <結果, 採用ならその時の確率変数>のタプル
 		*/
-		static double vonNeumann_rejection(double (*f)(double),double xi, double xs, double fm);
+		static std::pair<bool, double> vonNeumann_rejection(double (*f)(double), std::uniform_real_distribution<> xdist, std::uniform_real_distribution<> fdist);
 };
