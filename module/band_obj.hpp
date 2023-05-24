@@ -19,7 +19,7 @@
 class band_obj : public band{
 	private:
 		curve dos, gvelocity, domcp;
-		double domcp_max;
+		double domcp_max, dos_max;
 		wave_direction directions;
 		wave_mode mode;
 		mc_sim::logger& logger;
@@ -30,6 +30,21 @@ class band_obj : public band{
 		 * @param omega 角周波数\f$\omega\f$
 		*/
 		double dos_getter(double omega) override;
+		
+		/*!
+		 * @brief dos_getterのomegaとして指定しうる最小値を取得する関数
+		*/
+		double dos_omega_min_getter() override;
+		
+		/*!
+		 * @brief dos_getterのomegaとして指定しうる最大値値を取得する関数
+		*/
+		double dos_omega_max_getter() override;
+		
+		/*!
+		 * @brief 状態密度の最大値を取得する関数
+		*/
+		double dos_max_getter() override;
 		
 		/*!
 		 * @brief 群速度(Group velocity)を取得する関数
@@ -43,6 +58,16 @@ class band_obj : public band{
 		 * @param omega 角周波数\f$\omega\f$
 		*/
 		double domcp_getter(double omega) override;
+		
+		/*!
+		 * @brief domcp_getterのomegaとして指定しうる最小値を取得する関数
+		*/
+		virtual double domcp_omega_min_getter() override;
+		
+		/*!
+		 * @brief domcp_getterのomegaとして指定しうる最大値を取得する関数
+		*/
+		virtual double domcp_omega_max_getter() override;
 		
 		/*!
 		 * @brief モンテカルロ粒子密度(Density of MonteCalro Particle)の最大値を取得する関数
