@@ -13,6 +13,7 @@
  * バンドが関連する物質定数, 定関数の類を表としてまとめる
 */
 class band{
+	public:
 	/*!
 	 * @brief 状態密度(Density of State)を取得する関数
 	 * @param omega 角周波数\f$\omega\f$
