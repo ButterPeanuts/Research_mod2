@@ -3,12 +3,13 @@
 #include<fstream>
 #include<algorithm>
 #include<omp.h>
-#include"Simulation.hpp"
+
+#include"simulation.hpp"
 #include"physconst.hpp"
 #include"massconst.hpp"
 #include"Integral.h"
 #include"mcparticles.hpp"
-Simulation::Simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh) {
+simulation::simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh) {
 	//定めてね
 	this->Volume = max_x * max_y * max_z;
 
@@ -20,11 +21,11 @@ Simulation::Simulation(int NumberofMCparticles,double max_x,double max_y,double 
 	#pragma omp parallel for
 		for (int Temperature = 1; Temperature <= massconst::heatcaps_Tempmax ; Temperature++) {
 			double InE = 0;
-			InE += Simulation::Total_energy2(Temperature);
+			InE += simulation::Total_energy2(Temperature);
 			Internal_energy[Temperature] = InE;
 		}
 	#pragma omp barrier
-		std::cout << "Internal_energy table was calculated." << std::endl;
+	std::cout << "Internal_energy table was calculated." << std::endl;
 
 	this->U = this->Internal_energy[ShtT] * max_x * max_y * max_z;
 
@@ -41,7 +42,7 @@ Simulation::Simulation(int NumberofMCparticles,double max_x,double max_y,double 
 	this->Temperature = std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>(spacemesh[2], 0.0)));
 	this->spacemesh = spacemesh;
 }
-double Simulation::Total_energy2(double Temperature){
+double simulation::Total_energy2(double Temperature){
 	return Romberg(0, Temperature, 10, 10, [Temperature](double T) {
 		if (T <= 0)return massconst::Si_heatcap[0];
 		if (T >= massconst::heatcaps_Tempmax)return *(massconst::Si_heatcap.end() - 1);
@@ -51,7 +52,7 @@ double Simulation::Total_energy2(double Temperature){
 	});
 };
 
-void Simulation::Particle_Disp_output(std::string filename) {
+void simulation::Particle_Disp_output(std::string filename) {
 	std::ofstream files(filename + ".txt");
 	if (!files) {
 		std::cout << "保存に失敗しました" << std::endl;
@@ -64,7 +65,7 @@ void Simulation::Particle_Disp_output(std::string filename) {
 
 }
 
-bool Simulation::Temperature_construct() {
+bool simulation::Temperature_construct() {
 	//各meshのEnergy密度
 	std::vector<std::vector<std::vector<double>>> MeshEnergy= std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>((int)spacemesh[2], 0)));
 	int index_x,index_y,index_z;
@@ -108,7 +109,7 @@ bool Simulation::Temperature_construct() {
 
 }
 
-void Simulation::Particle_move(double dt) {
+void simulation::Particle_move(double dt) {
 	#pragma omp parallel for
 	//for (auto i = this->MCParticles.begin(); i < this->MCParticles.end(); i++) {
 	for(int j = 0;j < static_cast<int>(MCParticles.size());j++){

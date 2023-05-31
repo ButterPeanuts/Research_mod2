@@ -85,7 +85,7 @@ target_compile_features(massconst PRIVATE cxx_std_20)
 
 
 #simulation
-add_library(simulation STATIC module/Simulation.cpp)
+add_library(simulation STATIC module/simulation.cpp)
 
 target_include_directories(simulation PUBLIC module)
 target_compile_options(simulation PRIVATE -Wall)

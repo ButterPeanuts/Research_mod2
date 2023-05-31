@@ -2,11 +2,11 @@
 #include<functional>
 #include<string>
 #include"mcparticles.hpp"
-class Simulation {
+class simulation {
 	private:
 	public:
 		static double Total_energy2(double Temperature);
-		Simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh);
+		simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh);
 		double U,Volume,Energy_MCParticles;
 		//x方向に進むのを想定することに
 		//y方向の薄膜?
