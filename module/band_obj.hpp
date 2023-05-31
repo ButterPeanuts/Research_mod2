@@ -10,6 +10,7 @@
 #include "band.hpp"
 #include <curve.hpp>
 #include <logger.hpp>
+#include <scatconst.hpp>
 
 /*!
  * @brief 粒子が存在する? バンドについての情報のクラス
@@ -22,9 +23,10 @@ class band_obj : public band{
 		double domcp_max, dos_max;
 		wave_direction directions;
 		wave_mode mode;
+		scatconst bands_scatconst;
 		mc_sim::logger& logger;
 	public:
-		band_obj(mc_sim::logger& newlogger, curve dos, curve gvelocity, curve domcp, wave_direction direction, wave_mode mode);
+		band_obj(mc_sim::logger& newlogger, curve dos, curve gvelocity, curve domcp, wave_direction direction, wave_mode mode, scatconst bands_scatconst);
 		/*!
 		 * @brief 状態密度(Density of State)を取得する関数
 		 * @param omega 角周波数\f$\omega\f$
@@ -84,4 +86,34 @@ class band_obj : public band{
 		 * @brief 音響波か光学波か取得する関数
 		*/
 		wave_mode mode_getter() override;
+		
+		/*!
+		 * @brief ウムクラップ散乱の散乱係数a
+		*/
+		double a() override;
+		
+		/*!
+		 * @brief ウムクラップ散乱の散乱係数b
+		*/
+		double b() override;
+		
+		/*!
+		 * @brief ウムクラップ散乱の散乱係数\f$\chi\f$
+		*/
+		double chi() override;
+		
+		/*!
+		 * @brief ウムクラップ散乱の散乱係数\f$\xi\f$
+		*/
+		double xi() override;
+		
+		/*!
+		 * @brief 欠陥散乱の散乱係数c
+		*/
+		double c() override;
+		
+		/*!
+		 * @brief 境界散乱の散乱係数f
+		*/
+		double f() override;
 };
