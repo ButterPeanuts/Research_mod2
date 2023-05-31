@@ -6,6 +6,7 @@
 */
 #pragma once
 #include <string>
+#include<random>
 #include "modeenum.hpp"
 #include "band.hpp"
 #include <curve.hpp>
@@ -34,19 +35,16 @@ class band_obj : public band{
 		double dos_getter(double omega) override;
 		
 		/*!
-		 * @brief dos_getterのomegaとして指定しうる最小値を取得する関数
+		 * @brief dos_getterのomegaとして指定しうる範囲を取得する関数
+		 * @return dos_getterのomegaとして指定しうる範囲のdistribution
 		*/
-		double dos_omega_min_getter() override;
+		std::uniform_real_distribution<> dos_omega_distribution_getter() override;
 		
 		/*!
-		 * @brief dos_getterのomegaとして指定しうる最大値値を取得する関数
+		 * @brief 状態密度の範囲を取得する関数
+		 * @return 状態密度の範囲のdistribution
 		*/
-		double dos_omega_max_getter() override;
-		
-		/*!
-		 * @brief 状態密度の最大値を取得する関数
-		*/
-		double dos_max_getter() override;
+		std::uniform_real_distribution<> dos_distribution_getter() override;
 		
 		/*!
 		 * @brief 群速度(Group velocity)を取得する関数
@@ -62,20 +60,17 @@ class band_obj : public band{
 		double domcp_getter(double omega) override;
 		
 		/*!
-		 * @brief domcp_getterのomegaとして指定しうる最小値を取得する関数
+		 * @brief domcp_getterのomegaとして指定しうる範囲を取得する関数
+		 * @return domcp_getterのomegaとして指定しうる範囲のdistribution
 		*/
-		virtual double domcp_omega_min_getter() override;
+		std::uniform_real_distribution<> domcp_omega_distribution_getter() override;
 		
 		/*!
-		 * @brief domcp_getterのomegaとして指定しうる最大値を取得する関数
-		*/
-		virtual double domcp_omega_max_getter() override;
-		
-		/*!
-		 * @brief モンテカルロ粒子密度(Density of MonteCalro Particle)の最大値を取得する関数
+		 * @brief モンテカルロ粒子密度(Density of MonteCalro Particle)の範囲を取得する関数
 		 * @details かなり純粋なgetter これがないと棄却法にO(n)かかる
+		 * @brief モンテカルロ粒子密度(Density of MonteCalro Particle)の範囲を表すdistribution
 		*/
-		double domcp_max_getter() override;
+		std::uniform_real_distribution<> domcp_distribution_getter() override;
 		
 		/*!
 		 * @brief 縦波か横波かを取得する関数

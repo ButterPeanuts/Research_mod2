@@ -58,6 +58,14 @@ target_compile_features(band_obj PRIVATE cxx_std_20)
 target_link_libraries(band_obj PRIVATE curve)
 
 
+#physconst
+add_library(physconst STATIC module/physconst.cpp)
+
+target_include_directories(physconst PUBLIC module)
+target_compile_options(physconst PRIVATE -Wall)
+target_compile_features(physconst PRIVATE cxx_std_20)
+
+
 #mcparticles
 add_library(mcparticles STATIC module/mcparticles.cpp)
 
@@ -65,13 +73,7 @@ target_include_directories(mcparticles PUBLIC module)
 target_compile_options(mcparticles PRIVATE -Wall)
 target_compile_features(mcparticles PRIVATE cxx_std_20)
 
-
-#physconst
-add_library(physconst STATIC module/physconst.cpp)
-
-target_include_directories(physconst PUBLIC module)
-target_compile_options(physconst PRIVATE -Wall)
-target_compile_features(physconst PRIVATE cxx_std_20)
+target_link_libraries(mcparticles PRIVATE physconst)
 
 
 #massconst

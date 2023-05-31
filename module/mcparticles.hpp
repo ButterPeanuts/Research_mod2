@@ -6,6 +6,8 @@
 */
 #pragma once
 #include<vector>
+#include<band.hpp>
+#include<logger.hpp>
 /**
  * @brief モンテカルロ粒子のクラス
  * @details モンテカルロ粒子 略してMCParticle
@@ -28,43 +30,13 @@ namespace mc_particles{
 			/*! 電荷q */
 			double charge = 0;
 			
-			/*! バンド番号 参照する分散関係など */
-			int bandnum = 0;
-		
-		public :
-			/*! 変位 */
-			std::vector<double> position;
+			/*! 現在のバンド 参照する分散関係など */
+			std::vector<band>::iterator band_current;
 			
-			/*!
-			 * @brief コンストラクタ
-			 * @param Energy 粒子(MC粒子にあらず)のエネルギー \f$\omega\hbar\f$
-			 * @param Temperature 不明 cppを解析されたい
-			*/
-			MCParticles(double Energy, double Temperature);
+			/*! 粒子が取りうるすべてのバンド情報 */
+			std::vector<band> banddata;
 			
-			/*!
-			 * @brief 時間dtの後の状態にMC粒子を遷移させる
-			 * @param dt 格子時間dt
-			*/
-			void Nextstep(double dt);
-			
-			/*!
-			 * @brief 境界散乱Bを起こす
-			 * @param max_x シミュレーション空間の大きさ?
-			 * @param max_y シミュレーション空間の大きさ?
-			 * @param max_z シミュレーション空間の大きさ?
-			*/
-			void Boundary_Scatter_B(double max_x, double max_y, double max_z);
-			
-			/*!
-			 * @brief 散乱の判定を行い, 適切な散乱を発生させる
-			 * @detail 棄却法によってどの散乱が発生するか決定
-			 * その後然るべきメソッドを使用して散乱による変化を粒子に引き起こす
-			 * @param Temperature 温度? 要検証
-			 * @param dt MCParticles::Nextstep(double dt)などで使った時間間隔
-			 * @param min_structure 確率P_bに関わるもの Simulationから呼び出せということか
-			*/
-			void Scatter(double Temperature,double dt,double min_structure);
+			mc_sim::logger& logger;
 			
 			/*!
 			 * @brief 粒子に弾性散乱を起こす
@@ -72,6 +44,48 @@ namespace mc_particles{
 			 * 中身は速度方向ベクトルの新造
 			 * Scatterで弾性散乱が発生したらこれが呼び出される
 			*/
-			void Elastic_scattering();
+			void elastic_scattering();
+			
+			/*!
+			 * @brief 粒子に非弾性散乱を起こす
+			*/
+			void inelastic_scattering(double temperature);
+		
+		public :
+			/*! 変位 */
+			std::vector<double> position;
+			
+			/*!
+			 * @brief コンストラクタ
+			 * @param newlogger ロガー
+			 * @param Energy 粒子(MC粒子にあらず)のエネルギー \f$\omega\hbar\f$
+			 * @param Temperature 不明 cppを解析されたい
+			 * @param bandinj バンドデータの注入
+			*/
+			MCParticles(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj);
+			
+			/*!
+			 * @brief 時間dtの後の状態にMC粒子を遷移させる
+			 * @param dt 格子時間dt
+			*/
+			void nextstep(double dt);
+			
+			/*!
+			 * @brief 境界散乱Bを起こす
+			 * @param max_x シミュレーション空間の大きさ?
+			 * @param max_y シミュレーション空間の大きさ?
+			 * @param max_z シミュレーション空間の大きさ?
+			*/
+			void boundaryscatter_b(double max_x, double max_y, double max_z);
+			
+			/*!
+			 * @brief 散乱の判定を行い, 適切な散乱を発生させる
+			 * @detail 棄却法によってどの散乱が発生するか決定
+			 * その後然るべきメソッドを使用して散乱による変化を粒子に引き起こす
+			 * @param Temperature 温度? 要検証 -> おそらくmcparticlesがいるところの温度
+			 * @param dt MCParticles::Nextstep(double dt)などで使った時間間隔
+			 * @param min_structure 確率P_bに関わるもの Simulationから呼び出せということか
+			*/
+			void scatter(double Temperature,double dt,double min_structure);
 	};
 }

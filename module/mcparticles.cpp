@@ -1,6 +1,9 @@
 #include "mcparticles.hpp"
+
 #include "physconst.hpp"
-#include "massconst.hpp"
+#include<band.hpp>
+#include<logger.hpp>
+
 #include<vector>
 #include<cmath>
 #include<numbers>
@@ -8,70 +11,30 @@
 
 using namespace mc_particles;
 
-
-MCParticles::MCParticles(double Energy,double Temperature){
-	//‰Šúó‘Ôu(‘¬“x•ûŒü)Œˆ’è
-	//https://qiita.com/aa_debdeb/items/e416ae8a018692fc07eb ‚àQÆ‚Ì‚±‚Æ
+MCParticles::MCParticles(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj) : logger(newlogger){
+	//ãƒãƒ³ãƒ‰æƒ…å ±ã‚’è¨­å®š
+	this->banddata = bandinj;
+	
+	//é€Ÿåº¦æ–¹å‘ã®ãƒ™ã‚¯ãƒˆãƒ«ã‚’ä½œã‚‹
 	this->velocity_pointing = std::vector<double>(MCParticles::dimension, 0);
-	this->Elastic_scattering();
 	
-	//‰Šúó‘Ôomega,bandŒˆ’è
-	//ó‘Ô–§“x‚Ìî•ñ‚ÍMCParticle‚²‚Æ‚É‚Ç‚Ì’l‚ğ•Û‚·‚é‚©•Ï‚í‚è‚»‚¤‚È‚Ì‚Å
-	//ƒƒ“ƒo[‚ğ’Ç‰Á‚µ‚Ä‚¨‚­•K—v‚ª‚ ‚é
-	//(https://www.notion.so/MCParticle-761aeb843f10432d81f7b255734779fe?pvs=4)
-	std::uniform_real_distribution<> randx(1.0e+12, std::max((*(massconst::Si_DOS_LA.end() - 1))[0],(*(massconst::Si_DOS_TA.end() - 1))[0]));
-	//Šü‹p–@‚Ì‚½‚ß‚ÉÅ‘å’l‚ğo‚µ‚Ä‚¢‚é‚Æ‚±‚ë
-	//–³‘Ê‚ª‘½‚¢
-	//–‘O‚Éƒe[ƒuƒ‹Œ`®‚Å‚Á‚Ä‚¨‚­‚×‚«
-	//(https://www.notion.so/MCParticle-761aeb843f10432d81f7b255734779fe?pvs=4)
-	double maxdis = 0;
-	for (auto i = massconst::Si_DOS_LA.begin(); i < massconst::Si_DOS_LA.end(); i++) {
-		double P = (*i)[1] * physconst::dirac * (*i)[0] / Energy / (exp(physconst::dirac * (*i)[0] / physconst::boltzmann / Temperature) - 1);
-		if (maxdis > P)maxdis = P;
-	}
+	//è§’å‘¨æ³¢æ•°, ãƒãƒ³ãƒ‰, é€Ÿåº¦æ–¹å‘ã¨ã„ã£ãŸåˆæœŸçŠ¶æ…‹ã‚’æ±ºå®š
+	this->inelastic_scattering(temperature);
 	
-	//‚½‚¾’Pƒ‹L‰¯‚Å‚Íƒ_ƒ‚»‚¤
-	//‚È‚É‚¹DOS_interpolation‚ª‚ ‚é‚Ì‚Å
-	//‚Ä‚¢‚¤‚©DOS_interpolation‚Íƒoƒ“ƒhƒNƒ‰ƒX‚ÉˆÚŠÇ‚Å‚«‚»‚¤
-	std::uniform_real_distribution<> randf(0, maxdis);
-	std::uniform_int_distribution<> randp(0, 2);
-	for (;;) {
-		double xr = randx(physconst::mtrand);
-		double fr = randf(physconst::mtrand);
-		int pr = randp(physconst::mtrand);
-		auto P = [=](double omega, int p) {
-			if (p == 2) {
-				return massconst::DOS_interpolation(massconst::Si_DOS_LA, omega) * omega * physconst::dirac / Energy / (exp(physconst::dirac * omega / physconst::boltzmann / Temperature) - 1);
-			}
-			else {
-				return massconst::DOS_interpolation(massconst::Si_DOS_TA, omega) * omega * physconst::dirac / Energy / (exp(physconst::dirac * omega / physconst::boltzmann / Temperature) - 1);
-			}
-		};
-		if (fr <= P(xr, pr)) {
-			this->angular_frequency = xr;
-			this->bandnum = pr;
-			break;
-		}
-	}
-	
-	//‰Šúó‘ÔrŒˆ’è
-	this->position[0] = 0;
-	this->position[1] = 0;
-	this->position[2] = 0;
+	//å¤‰ä½ã®åˆæœŸçŠ¶æ…‹ã‚’æ±ºå®š
+	this->position = std::vector<double>(MCParticles::dimension, 0);
 }
 
-void MCParticles::Nextstep(double dt) {
-	//‚±‚ê‚àƒoƒ“ƒhƒNƒ‰ƒX‚É“‡‚µ‚½‚Ù‚¤‚ª—Ç‚³‚»‚¤
-	//(https://www.notion.so/MCParticle-761aeb843f10432d81f7b255734779fe?pvs=4)
-	double velocity = massconst::Si_group_velocity(angular_frequency,bandnum);
+void MCParticles::nextstep(double dt) {
+	double velocity = this->band_current->gvelocity_getter(this->angular_frequency);
 	
 	for (int i = 0; i < MCParticles::dimension; i++) {
-		position[i] += dt * velocity_pointing[i] * velocity;
+		this->position[i] += dt * this->velocity_pointing[i] * velocity;
 	}
 }
 
-void MCParticles::Boundary_Scatter_B(double max_x, double max_y, double max_z) {
-	//‚±‚±‚Í‹C‚É‚È‚é‚Æ‚«‚ÉŒŸØand‰ğà•t‰Á‚Å‚¢‚¢‚Ì‚©
+void MCParticles::boundaryscatter_b(double max_x, double max_y, double max_z) {
+	//ã“ã“ã¯æ°—ã«ãªã‚‹ã¨ãã«æ¤œè¨¼andè§£èª¬ä»˜åŠ ã§ã„ã„ã®ã‹
 	if ((this->position)[1] < 0 || max_y < this->position[1]) {
 		std::uniform_real_distribution<> randR(0, 1);
 		double sin_oldtheta = std::sqrt(1 - this->velocity_pointing[1] * this->velocity_pointing[1]);
@@ -107,70 +70,40 @@ void MCParticles::Boundary_Scatter_B(double max_x, double max_y, double max_z) {
 	}
 }
 
-void MCParticles::Scatter(double Temperature,double dt,double min_structure) {
-    //‹«ŠEU—B‚ª•K—v
-    //ƒtƒHƒmƒ“ƒtƒHƒmƒ“U—
-    //ƒoƒ“ƒh”Ô†‚È‚ñ‚Æ‚©‚µ‚È‚¢‚Æ‚Ë
-	std::uniform_real_distribution<> randx(0, 1);
-    std::uniform_real_distribution<> randcosth(-1, 1);
-
-    //ƒtƒHƒmƒ“‘ŠŒİ
-    double Pu;
-    if (this->bandnum == 0 || this->bandnum == 1) {
-        Pu = massconst::Si_scatter_ATA * pow(this->angular_frequency,massconst::Si_scatter_chiTA) * pow(Temperature,massconst::Si_scatter_xiTA) * std::exp(massconst::Si_scatter_BTA / (-Temperature));
-    }
-    else {
-        Pu = massconst::Si_scatter_ALA * pow(this->angular_frequency,massconst::Si_scatter_chiLA) * pow(Temperature,massconst::Si_scatter_xiLA) * std::exp(massconst::Si_scatter_BLA / (-Temperature));
-    }
-    if (randx(physconst::mtrand) <= (1 - exp(-dt * Pu))) {
-		std::uniform_real_distribution<> randx(std::min((*(massconst::Si_DOS_LA.begin() + 1))[0],(*(massconst::Si_DOS_TA.begin() + 1))[0]), std::max((*(massconst::Si_DOS_LA.end() - 1))[0],(*(massconst::Si_DOS_TA.end() - 1))[0]));
-		double maxdis = 0;
-		for (auto i = massconst::Si_DOS_LA.begin(); i < massconst::Si_DOS_LA.end(); i++) {
-			double P = Pu * (*i)[1] * physconst::dirac * (*i)[0] / (physconst::dirac * this->angular_frequency)/ (exp(physconst::dirac * (*i)[0] / physconst::boltzmann / Temperature) - 1);
-			if (maxdis > P)maxdis = P;
-		}
-
-		std::uniform_real_distribution<> randf(0, maxdis);
-		std::uniform_int_distribution<> randp(0, 2);
-		for (;;) {
-			double xr = randx(physconst::mtrand);
-			double fr = randf(physconst::mtrand);
-			int pr = randp(physconst::mtrand);
-			auto P = [&](double omega, int p) {
-				if (p == 2) {
-					return Pu * massconst::DOS_interpolation(massconst::Si_DOS_LA, omega) * omega * physconst::dirac / (physconst::dirac * this->angular_frequency) / (exp(physconst::dirac * omega / physconst::boltzmann / Temperature) - 1);
-				}
-				else {
-					return Pu * massconst::DOS_interpolation(massconst::Si_DOS_TA, omega) * omega * physconst::dirac / (physconst::dirac * this->angular_frequency) / (exp(physconst::dirac * omega / physconst::boltzmann / Temperature) - 1);
-				}
-			};
-			if (fr <= P(xr, pr)) {
-				this->angular_frequency = xr;
-				this->bandnum = pr;
-				break;
-			}
-		}
-        return;
-    }
-
-    //ƒtƒHƒmƒ“Œ‡Š×
-    double Pd = massconst::Si_scatter_C * pow(angular_frequency, 4);
-    if (randx(physconst::mtrand) <= (1 - exp(-dt * Pd))) {
-        this->Elastic_scattering();
-        return;
-    }
-
-    //ƒtƒHƒmƒ“‹«ŠEA
-    //F,L‚ÍŒã‚É
-    double Pb = massconst::Si_group_velocity(angular_frequency, bandnum) * min_structure * 0.55;
-    if (randx(physconst::mtrand) <= (1 - exp(-dt * Pb))) {
-        this->Elastic_scattering();
-        return;
-    }
+void MCParticles::scatter(double temperature,double dt,double min_structure) {
+	//ãƒãƒ³ãƒ‰æƒ…å ±
+	auto band = this->band_current;
+	
+	//ãƒ•ã‚©ãƒãƒ³ç›¸äº’æ•£ä¹±(ã‚¦ãƒ ã‚¯ãƒ©ãƒƒãƒ—æ•£ä¹±)
+	double tui = band->a() * std::pow(this->angular_frequency, band->chi()) * std::pow(temperature, band->xi()) * std::exp(-band->b() / temperature);
+	//æ¬ é™¥æ•£ä¹±
+	double tdi = band->c() * pow(this->angular_frequency, 4);
+	//å¢ƒç•Œæ•£ä¹±A
+	double tbi = band->gvelocity_getter(this->angular_frequency) * min_structure * band->f();
+	
+	//éå¼¾æ€§æ•£ä¹±ã®ç¢ºç‡
+	double pnes = 1 - std::exp(-dt * tui);
+	//å¼¾æ€§æ•£ä¹±ã®ç¢ºç‡
+	double pes = 1 - std::exp(-dt * (tdi + tbi));
+	if (1 < pnes + pes){
+		//ç¢ºç‡ãŒãŠã‹ã—ã„ã¨ã(æ•£ä¹±ç¢ºç‡ãŒ1ä»¥ä¸Š)ã¯è­¦å‘Šã‚’ç™ºã™ã‚‹
+		this->logger.warn("Probability of scattering is 1 or more!");
+	}
+	
+	//æ•£ä¹±ã®æ±ºå®š, å®Ÿè¡Œ
+	std::uniform_real_distribution<> randp(0, 1);
+	double scattering_factor = randp(physconst::mtrand);
+	if (scattering_factor < pnes){
+		this->inelastic_scattering(temperature);
+	} else if (scattering_factor < (pnes + pes)){
+		this->elastic_scattering();
+	}
+	return;
 }
 
-//’e«U—(‘¬‚³•Ï‰»‚È‚µ,‘¬“xƒxƒNƒgƒ‹•ûŒü•Ï‰»)
-void MCParticles::Elastic_scattering() {
+//å¼¾æ€§æ•£ä¹±(é€Ÿã•å¤‰åŒ–ãªã—,é€Ÿåº¦ãƒ™ã‚¯ãƒˆãƒ«æ–¹å‘å¤‰åŒ–)
+void MCParticles::elastic_scattering() {
+	//https://qiita.com/aa_debdeb/items/e416ae8a018692fc07eb ã‚‚å‚ç…§ã®ã“ã¨
 	std::uniform_real_distribution<> randcosth(-1, 1);
 	double costh = randcosth(physconst::mtrand);
 	double phi = randcosth(physconst::mtrand) * std::numbers::pi;
@@ -178,5 +111,45 @@ void MCParticles::Elastic_scattering() {
 	this->velocity_pointing[0] = sinth * std::cos(phi);
 	this->velocity_pointing[1] = sinth * std::sin(phi);
 	this->velocity_pointing[2] = costh;
+	return;
+}
+
+void MCParticles::inelastic_scattering(double temperature){
+	//https://github.com/ButterPeanuts/Research_mod2/issues/9
+	//ã“ã®issueã®é€šã‚Š, DOSãƒ†ãƒ¼ãƒ–ãƒ«ç¯„å›²å¤–ã®ç©åˆ†ã¯ç„¡è¦–ã§ãã‚‹ã¨ã—ã¦çµ„ã¾ã‚Œã¦ã„ã‚‹
+	
+	//ãƒãƒ³ãƒ‰ç¨®é¡ç”¨distribution
+	std::uniform_int_distribution<> randp(0, this->banddata.size() - 1);
+	
+	//MCç²’å­åˆ†å¸ƒé–¢æ•°
+	std::vector<std::function<double(double)>> mcp_dists;
+	std::for_each(this->banddata.begin(), this->banddata.end(), [temperature, &mcp_dists](band& selectedband) -> void{
+		std::function<double(double)> distpart = [temperature, &selectedband](double omega) -> double{
+			return selectedband.dos_getter(omega) * physconst::bedist(omega, temperature) / physconst::dirac / omega;
+		};
+		mcp_dists.push_back(distpart);
+	});
+	
+	while (true) {
+		//ã©ã®ãƒãƒ³ãƒ‰?
+		int pr = randp(physconst::mtrand);
+		auto selectedband = (this->banddata.begin() + pr);
+		auto selecteddist = (mcp_dists.begin() + pr);
+		//çµæœ
+		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), selectedband->dos_distribution_getter());
+		
+		if (result.first) {
+			//æ¡ç”¨ãªã‚‰...
+			this->angular_frequency = result.second;
+			this->band_current = selectedband;
+			this->logger.debug("My angular frequency is " + std::to_string(this->angular_frequency));
+			this->logger.debug("My band is " + std::to_string(this->band_current - this->banddata.begin()));
+			break;
+		}
+	}
+	
+	//é€Ÿåº¦æ–¹å‘å¤‰æ›´
+	this->elastic_scattering();
+	
 	return;
 }
