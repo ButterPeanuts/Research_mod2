@@ -2,12 +2,13 @@
 #include<functional>
 #include<string>
 #include"mcparticles.hpp"
+#include<curve.hpp>
 class simulation {
 	private:
 	public:
 		static double Total_energy2(double Temperature);
-		simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh);
-		double U,Volume,Energy_MCParticles;
+		simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh, double, curve);
+		double U, volume,Energy_MCParticles;
 		//x方向に進むのを想定することに
 		//y方向の薄膜?
 		double max_x, max_y, max_z;
@@ -23,7 +24,8 @@ class simulation {
 
 		//比熱
 		std::vector<double> Heat_cap;
-		std::vector<double> Internal_energy;
+		//std::vector<double> Internal_energy;
+		curve internal_energy;
 
 		std::vector<std::vector<std::vector<double>>> Temperature;
 		void Particle_move(double dt);

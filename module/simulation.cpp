@@ -9,13 +9,11 @@
 #include"massconst.hpp"
 #include"Integral.h"
 #include"mcparticles.hpp"
-simulation::simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh) {
-	//定めてね
-	this->Volume = max_x * max_y * max_z;
-
-	//なにこれ
-	//室温?
-	int ShtT = 300;
+simulation::simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh, double tempof_device, curve internal_energy) : internal_energy(internal_energy) {
+	//体積
+	this->volume = max_x * max_y * max_z;
+	
+	//physconstへ移管
 	this->Internal_energy = std::vector<double>(massconst::heatcaps_Tempmax+1, 0.0);
 	Internal_energy[0] = (0);
 	#pragma omp parallel for
@@ -42,6 +40,7 @@ simulation::simulation(int NumberofMCparticles,double max_x,double max_y,double 
 	this->Temperature = std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>(spacemesh[2], 0.0)));
 	this->spacemesh = spacemesh;
 }
+
 double simulation::Total_energy2(double Temperature){
 	return Romberg(0, Temperature, 10, 10, [Temperature](double T) {
 		if (T <= 0)return massconst::Si_heatcap[0];
