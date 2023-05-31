@@ -3,58 +3,29 @@
 #include "physconst.hpp"
 #include<band.hpp>
 #include<logger.hpp>
+
 #include<vector>
 #include<cmath>
 #include<numbers>
 #include<iostream>
 
-//多分いらなくなる
-#include "massconst.hpp"
 using namespace mc_particles;
 
 MCParticles::MCParticles(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj) : logger(newlogger){
 	//バンド情報を設定
 	this->banddata = bandinj;
 	
-	//初期状態u(速度方向)決定
+	//速度方向のベクトルを作る
 	this->velocity_pointing = std::vector<double>(MCParticles::dimension, 0);
-	//弾性散乱だが, 内部的には速度方向のリセットである
-	this->Elastic_scattering();
 	
-	//初期状態omega,band決定
-	//https://github.com/ButterPeanuts/Research_mod2/issues/9
-	//このissueの通り, DOSテーブル範囲外の積分は無視できるとして組まれている
-	//
-	//バンド種類用distribution
-	std::uniform_int_distribution<> randp(0, bandinj.size() - 1);
+	//角周波数, バンド, 速度方向といった初期状態を決定
+	this->inelastic_scattering(temperature);
 	
-	for (;;) {
-		//どのバンド?
-		int pr = randp(physconst::mtrand);
-		auto selectedband = (bandinj.begin() + pr);
-		//結果
-		//MUST FIX!!!(#8) 確率分布が全然違う 詳細は久木田(2014)式2.13を参照
-		//MUST FIX!!!(#8) 確率分布用のlambdaの生成が多くなってしまう 外側に置けるはず
-		std::function<double(double)> dos_func = [selectedband](double omega) -> double{
-			return selectedband->dos_getter(omega);
-		};
-		auto result = physconst::vonNeumann_rejection(dos_func, selectedband->dos_omega_distribution_getter(), selectedband->dos_distribution_getter());
-		
-		if (result.first) {
-			//採用なら...
-			this->angular_frequency = result.second;
-			this->band_current = selectedband;
-			this->logger.debug("My angular frequency is " + std::to_string(this->angular_frequency));
-			this->logger.debug("My band is " + std::to_string(this->band_current - bandinj.begin()));
-			break;
-		}
-	}
-	
-	//初期状態r決定
+	//変位の初期状態を決定
 	this->position = std::vector<double>(MCParticles::dimension, 0);
 }
 
-void MCParticles::Nextstep(double dt) {
+void MCParticles::nextstep(double dt) {
 	double velocity = this->band_current->gvelocity_getter(this->angular_frequency);
 	
 	for (int i = 0; i < MCParticles::dimension; i++) {
@@ -62,7 +33,7 @@ void MCParticles::Nextstep(double dt) {
 	}
 }
 
-void MCParticles::Boundary_Scatter_B(double max_x, double max_y, double max_z) {
+void MCParticles::boundaryscatter_b(double max_x, double max_y, double max_z) {
 	//ここは気になるときに検証and解説付加でいいのか
 	if ((this->position)[1] < 0 || max_y < this->position[1]) {
 		std::uniform_real_distribution<> randR(0, 1);
@@ -99,14 +70,10 @@ void MCParticles::Boundary_Scatter_B(double max_x, double max_y, double max_z) {
 	}
 }
 
-void MCParticles::Scatter(double temperature,double dt,double min_structure) {
-	//境界散乱Bが必要
-	//フォノンフォノン散乱
-	//バンド番号なんとかしないとね
-	std::uniform_real_distribution<> randx(0, 1);
-	std::uniform_real_distribution<> randcosth(-1, 1);
-	
+void MCParticles::scatter(double temperature,double dt,double min_structure) {
+	//バンド情報
 	auto band = this->band_current;
+	
 	//フォノン相互散乱(ウムクラップ散乱)
 	double tui = band->a() * std::pow(this->angular_frequency, band->chi()) * std::pow(temperature, band->xi()) * std::exp(-band->b() / temperature);
 	//欠陥散乱
@@ -119,48 +86,23 @@ void MCParticles::Scatter(double temperature,double dt,double min_structure) {
 	//弾性散乱の確率
 	double pes = 1 - std::exp(-dt * (tdi + tbi));
 	if (1 < pnes + pes){
-		this->logger.warn("Probability of scattering is more than 1!");
+		//確率がおかしいとき(散乱確率が1以上)は警告を発する
+		this->logger.warn("Probability of scattering is 1 or more!");
 	}
 	
-	//散乱の決定
-	double scattering_factor = randx(physconst::mtrand);
+	//散乱の決定, 実行
+	std::uniform_real_distribution<> randp(0, 1);
+	double scattering_factor = randp(physconst::mtrand);
 	if (scattering_factor < pnes){
-		/* std::uniform_real_distribution<> randx(std::min((*(massconst::Si_DOS_LA.begin() + 1))[0],(*(massconst::Si_DOS_TA.begin() + 1))[0]), std::max((*(massconst::Si_DOS_LA.end() - 1))[0],(*(massconst::Si_DOS_TA.end() - 1))[0])); */
-		/* double maxdis = 0; */
-		/* for (auto i = massconst::Si_DOS_LA.begin(); i < massconst::Si_DOS_LA.end(); i++) { */
-		/* 	double P = Pu * (*i)[1] * physconst::dirac * (*i)[0] / (physconst::dirac * this->angular_frequency)/ (exp(physconst::dirac * (*i)[0] / physconst::boltzmann / Temperature) - 1); */
-		/* 	if (maxdis > P)maxdis = P; */
-		/* } */
-		
-		std::uniform_int_distribution<> randp(0, 2);
-		//久木田(2014)式2.21の確率分布による棄却
-		for (;;) {
-			double xr = randx(physconst::mtrand);
-			double fr = randf(physconst::mtrand);
-			int pr = randp(physconst::mtrand);
-			auto P = [&](double omega, int p) {
-				if (p == 2) {
-					return Pu * massconst::DOS_interpolation(massconst::Si_DOS_LA, omega) * omega * physconst::dirac / (physconst::dirac * this->angular_frequency) / (exp(physconst::dirac * omega / physconst::boltzmann / Temperature) - 1);
-				}
-				else {
-					return Pu * massconst::DOS_interpolation(massconst::Si_DOS_TA, omega) * omega * physconst::dirac / (physconst::dirac * this->angular_frequency) / (exp(physconst::dirac * omega / physconst::boltzmann / Temperature) - 1);
-				}
-			};
-			if (fr <= P(xr, pr)) {
-				this->angular_frequency = xr;
-				this->bandnum = pr;
-				break;
-			}
-		}
-		return;
+		this->inelastic_scattering(temperature);
 	} else if (scattering_factor < (pnes + pes)){
-		this->Elastic_scattering();
-		return;
+		this->elastic_scattering();
 	}
+	return;
 }
 
 //弾性散乱(速さ変化なし,速度ベクトル方向変化)
-void MCParticles::Elastic_scattering() {
+void MCParticles::elastic_scattering() {
 	//https://qiita.com/aa_debdeb/items/e416ae8a018692fc07eb も参照のこと
 	std::uniform_real_distribution<> randcosth(-1, 1);
 	double costh = randcosth(physconst::mtrand);
@@ -172,7 +114,42 @@ void MCParticles::Elastic_scattering() {
 	return;
 }
 
-double MCParticles::mcparticle_distribution(double ang_freq, double temp){
-	//久木田(2014)の式2.13
-	return this->band_current->dos_getter(ang_freq) * physconst::bedist(ang_freq, temp) * physconst::dirac * ang_freq;
+void MCParticles::inelastic_scattering(double temperature){
+	//https://github.com/ButterPeanuts/Research_mod2/issues/9
+	//このissueの通り, DOSテーブル範囲外の積分は無視できるとして組まれている
+	
+	//バンド種類用distribution
+	std::uniform_int_distribution<> randp(0, this->banddata.size() - 1);
+	
+	//MC粒子分布関数
+	std::vector<std::function<double(double)>> mcp_dists;
+	std::for_each(this->banddata.begin(), this->banddata.end(), [temperature, &mcp_dists](band& selectedband) -> void{
+		std::function<double(double)> distpart = [temperature, &selectedband](double omega) -> double{
+			return selectedband.dos_getter(omega) * physconst::bedist(omega, temperature) / physconst::dirac / omega;
+		};
+		mcp_dists.push_back(distpart);
+	});
+	
+	while (true) {
+		//どのバンド?
+		int pr = randp(physconst::mtrand);
+		auto selectedband = (this->banddata.begin() + pr);
+		auto selecteddist = (mcp_dists.begin() + pr);
+		//結果
+		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), selectedband->dos_distribution_getter());
+		
+		if (result.first) {
+			//採用なら...
+			this->angular_frequency = result.second;
+			this->band_current = selectedband;
+			this->logger.debug("My angular frequency is " + std::to_string(this->angular_frequency));
+			this->logger.debug("My band is " + std::to_string(this->band_current - this->banddata.begin()));
+			break;
+		}
+	}
+	
+	//速度方向変更
+	this->elastic_scattering();
+	
+	return;
 }

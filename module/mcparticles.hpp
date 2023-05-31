@@ -39,20 +39,17 @@ namespace mc_particles{
 			mc_sim::logger& logger;
 			
 			/*!
-			 * @brief MC粒子の確率分布関数
-			 * @param ang_freq 各周波数\f$\omega\f$
-			 * @param temp 温度\f$T\f$
-			 * @return MC粒子の確率分布関数の値
-			*/
-			double mcparticle_distribution(double ang_freq, double temp);
-			
-			/*!
 			 * @brief 粒子に弾性散乱を起こす
 			 * @details 弾性散乱(速さが変化せず速度が変化するもの)を起こす
 			 * 中身は速度方向ベクトルの新造
 			 * Scatterで弾性散乱が発生したらこれが呼び出される
 			*/
-			void Elastic_scattering();
+			void elastic_scattering();
+			
+			/*!
+			 * @brief 粒子に非弾性散乱を起こす
+			*/
+			void inelastic_scattering(double temperature);
 		
 		public :
 			/*! 変位 */
@@ -71,7 +68,7 @@ namespace mc_particles{
 			 * @brief 時間dtの後の状態にMC粒子を遷移させる
 			 * @param dt 格子時間dt
 			*/
-			void Nextstep(double dt);
+			void nextstep(double dt);
 			
 			/*!
 			 * @brief 境界散乱Bを起こす
@@ -79,7 +76,7 @@ namespace mc_particles{
 			 * @param max_y シミュレーション空間の大きさ?
 			 * @param max_z シミュレーション空間の大きさ?
 			*/
-			void Boundary_Scatter_B(double max_x, double max_y, double max_z);
+			void boundaryscatter_b(double max_x, double max_y, double max_z);
 			
 			/*!
 			 * @brief 散乱の判定を行い, 適切な散乱を発生させる
@@ -89,6 +86,6 @@ namespace mc_particles{
 			 * @param dt MCParticles::Nextstep(double dt)などで使った時間間隔
 			 * @param min_structure 確率P_bに関わるもの Simulationから呼び出せということか
 			*/
-			void Scatter(double Temperature,double dt,double min_structure);
+			void scatter(double Temperature,double dt,double min_structure);
 	};
 }
