@@ -18,7 +18,6 @@ MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temper
 	this->banddata = bandinj;
 	
 	//初期状態u(速度方向)決定
-	//https://qiita.com/aa_debdeb/items/e416ae8a018692fc07eb も参照のこと
 	this->velocity_pointing = std::vector<double>(MCParticles::dimension, 0);
 	//弾性散乱だが, 内部的には速度方向のリセットである
 	this->Elastic_scattering();
@@ -163,6 +162,7 @@ void MCParticles::Scatter(double Temperature,double dt,double min_structure) {
 
 //弾性散乱(速さ変化なし,速度ベクトル方向変化)
 void MCParticles::Elastic_scattering() {
+	//https://qiita.com/aa_debdeb/items/e416ae8a018692fc07eb も参照のこと
 	std::uniform_real_distribution<> randcosth(-1, 1);
 	double costh = randcosth(physconst::mtrand);
 	double phi = randcosth(physconst::mtrand) * std::numbers::pi;
