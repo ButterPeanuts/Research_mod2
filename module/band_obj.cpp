@@ -2,8 +2,9 @@
 #include "modeenum.hpp"
 #include "band_obj.hpp"
 #include <logger.hpp>
+#include <scatconst.hpp>
 
-band_obj::band_obj(mc_sim::logger& newlogger, curve dos, curve gvelocity, curve domcp, wave_direction direction, wave_mode mode) : dos(dos), gvelocity(gvelocity), domcp(domcp), logger(newlogger){
+band_obj::band_obj(mc_sim::logger& newlogger, curve dos, curve gvelocity, curve domcp, wave_direction direction, wave_mode mode, scatconst bands_scatconst) : dos(dos), gvelocity(gvelocity), domcp(domcp), bands_scatconst(bands_scatconst), logger(newlogger){
 	this->directions = direction;
 	this->mode = mode;
 	this->domcp_max = this->domcp.max();
@@ -44,4 +45,28 @@ wave_direction band_obj::directions_getter(){
 
 wave_mode band_obj::mode_getter(){
 	return this->mode;
+}
+
+double band_obj::a(){
+	return this->bands_scatconst.a();
+}
+
+double band_obj::b(){
+	return this->bands_scatconst.b();
+}
+
+double band_obj::chi(){
+	return this->bands_scatconst.chi();
+}
+
+double band_obj::xi(){
+	return this->bands_scatconst.xi();
+}
+
+double band_obj::c(){
+	return this->bands_scatconst.c();
+}
+
+double band_obj::f(){
+	return this->bands_scatconst.f();
 }

@@ -68,4 +68,34 @@ class band{
 	 * @brief 音響波か光学波か取得する関数
 	*/
 	virtual wave_mode mode_getter() = 0;
+	
+	/*!
+	 * @brief ウムクラップ散乱の散乱係数a
+	*/
+	virtual double a() = 0;
+	
+	/*!
+	 * @brief ウムクラップ散乱の散乱係数b
+	*/
+	virtual double b() = 0;
+	
+	/*!
+	 * @brief ウムクラップ散乱の散乱係数\f$\chi\f$
+	*/
+	virtual double chi() = 0;
+	
+	/*!
+	 * @brief ウムクラップ散乱の散乱係数\f$\xi\f$
+	*/
+	virtual double xi() = 0;
+	
+	/*!
+	 * @brief 欠陥散乱の散乱係数c
+	*/
+	virtual double c() = 0;
+	
+	/*!
+	 * @brief 境界散乱の散乱係数f
+	*/
+	virtual double f() = 0;
 };
