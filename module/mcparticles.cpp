@@ -12,7 +12,7 @@
 #include "massconst.hpp"
 using namespace mc_particles;
 
-
+//MUST FIX!!!(#8) double Energyはいらない
 MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temperature, std::vector<band> bandinj) : logger(newlogger){
 	//バンド情報を設定
 	this->banddata = bandinj;
@@ -34,6 +34,8 @@ MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temper
 		int pr = randp(physconst::mtrand);
 		auto selectedband = (bandinj.begin() + pr);
 		//結果
+		//MUST FIX!!!(#8) 確率分布が全然違う 詳細は久木田(2014)式2.13を参照
+		//MUST FIX!!!(#8) 確率分布用のlambdaの生成が多くなってしまう 外側に置けるはず
 		std::function<double(double)> dos_func = [selectedband](double omega) -> double{
 			return selectedband->dos_getter(omega);
 		};
@@ -98,31 +100,41 @@ void MCParticles::Boundary_Scatter_B(double max_x, double max_y, double max_z) {
 	}
 }
 
-void MCParticles::Scatter(double Temperature,double dt,double min_structure) {
+void MCParticles::Scatter(double temperature,double dt,double min_structure) {
 	//境界散乱Bが必要
 	//フォノンフォノン散乱
 	//バンド番号なんとかしないとね
 	std::uniform_real_distribution<> randx(0, 1);
 	std::uniform_real_distribution<> randcosth(-1, 1);
 	
-	//フォノン相互
-	double Pu;
-	if (this->bandnum == 0 || this->bandnum == 1) {
-		Pu = massconst::Si_scatter_ATA * pow(this->angular_frequency,massconst::Si_scatter_chiTA) * pow(Temperature,massconst::Si_scatter_xiTA) * std::exp(massconst::Si_scatter_BTA / (-Temperature));
+	auto band = this->band_current;
+	//フォノン相互散乱(ウムクラップ散乱)
+	double tui = band->a() * std::pow(this->angular_frequency, band->chi()) * std::pow(temperature, band->xi()) * std::exp(-band->b() / temperature);
+	//欠陥散乱
+	double tdi = band->c() * pow(this->angular_frequency, 4);
+	//境界散乱A
+	double tbi = band->gvelocity_getter(this->angular_frequency) * min_structure * band->f();
+	
+	//非弾性散乱の確率
+	double pnes = 1 - std::exp(-dt * tui);
+	//弾性散乱の確率
+	double pes = 1 - std::exp(-dt * (tdi + tbi));
+	if (1 < pnes + pes){
+		this->logger.warn("Probability of scattering is more than 1!");
 	}
-	else {
-		Pu = massconst::Si_scatter_ALA * pow(this->angular_frequency,massconst::Si_scatter_chiLA) * pow(Temperature,massconst::Si_scatter_xiLA) * std::exp(massconst::Si_scatter_BLA / (-Temperature));
-	}
-	if (randx(physconst::mtrand) <= (1 - exp(-dt * Pu))) {
-		std::uniform_real_distribution<> randx(std::min((*(massconst::Si_DOS_LA.begin() + 1))[0],(*(massconst::Si_DOS_TA.begin() + 1))[0]), std::max((*(massconst::Si_DOS_LA.end() - 1))[0],(*(massconst::Si_DOS_TA.end() - 1))[0]));
-		double maxdis = 0;
-		for (auto i = massconst::Si_DOS_LA.begin(); i < massconst::Si_DOS_LA.end(); i++) {
-			double P = Pu * (*i)[1] * physconst::dirac * (*i)[0] / (physconst::dirac * this->angular_frequency)/ (exp(physconst::dirac * (*i)[0] / physconst::boltzmann / Temperature) - 1);
-			if (maxdis > P)maxdis = P;
-		}
+	
+	//散乱の決定
+	double scattering_factor = randx(physconst::mtrand);
+	if (scattering_factor < pnes){
+		/* std::uniform_real_distribution<> randx(std::min((*(massconst::Si_DOS_LA.begin() + 1))[0],(*(massconst::Si_DOS_TA.begin() + 1))[0]), std::max((*(massconst::Si_DOS_LA.end() - 1))[0],(*(massconst::Si_DOS_TA.end() - 1))[0])); */
+		/* double maxdis = 0; */
+		/* for (auto i = massconst::Si_DOS_LA.begin(); i < massconst::Si_DOS_LA.end(); i++) { */
+		/* 	double P = Pu * (*i)[1] * physconst::dirac * (*i)[0] / (physconst::dirac * this->angular_frequency)/ (exp(physconst::dirac * (*i)[0] / physconst::boltzmann / Temperature) - 1); */
+		/* 	if (maxdis > P)maxdis = P; */
+		/* } */
 		
-		std::uniform_real_distribution<> randf(0, maxdis);
 		std::uniform_int_distribution<> randp(0, 2);
+		//久木田(2014)式2.21の確率分布による棄却
 		for (;;) {
 			double xr = randx(physconst::mtrand);
 			double fr = randf(physconst::mtrand);
@@ -142,19 +154,7 @@ void MCParticles::Scatter(double Temperature,double dt,double min_structure) {
 			}
 		}
 		return;
-	}
-	
-	//フォノン欠陥
-	double Pd = massconst::Si_scatter_C * pow(angular_frequency, 4);
-	if (randx(physconst::mtrand) <= (1 - exp(-dt * Pd))) {
-		this->Elastic_scattering();
-		return;
-	}
-	
-	//フォノン境界A
-	//F,Lは後に
-	double Pb = massconst::Si_group_velocity(angular_frequency, bandnum) * min_structure * 0.55;
-	if (randx(physconst::mtrand) <= (1 - exp(-dt * Pb))) {
+	} else if (scattering_factor < (pnes + pes)){
 		this->Elastic_scattering();
 		return;
 	}

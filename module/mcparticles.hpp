@@ -69,7 +69,7 @@ namespace mc_particles{
 			 * @brief 散乱の判定を行い, 適切な散乱を発生させる
 			 * @detail 棄却法によってどの散乱が発生するか決定
 			 * その後然るべきメソッドを使用して散乱による変化を粒子に引き起こす
-			 * @param Temperature 温度? 要検証
+			 * @param Temperature 温度? 要検証 -> おそらくmcparticlesがいるところの温度
 			 * @param dt MCParticles::Nextstep(double dt)などで使った時間間隔
 			 * @param min_structure 確率P_bに関わるもの Simulationから呼び出せということか
 			*/
