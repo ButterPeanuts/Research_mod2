@@ -11,3 +11,7 @@ std::pair<bool, double> physconst::vonNeumann_rejection(std::function<double(dou
 	if (fr <= f(xr))return {true, xr};
 	else return {false, 0};
 }
+
+double physconst::bedist(double ang_freq, double temp){
+	return 1 / (std::exp(physconst::dirac * ang_freq / physconst::boltzmann / temp) - 1);
+}

@@ -12,8 +12,7 @@
 #include "massconst.hpp"
 using namespace mc_particles;
 
-//MUST FIX!!!(#8) double Energyはいらない
-MCParticles::MCParticles(mc_sim::logger& newlogger, double Energy, double Temperature, std::vector<band> bandinj) : logger(newlogger){
+MCParticles::MCParticles(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj) : logger(newlogger){
 	//バンド情報を設定
 	this->banddata = bandinj;
 	
@@ -171,4 +170,9 @@ void MCParticles::Elastic_scattering() {
 	this->velocity_pointing[1] = sinth * std::sin(phi);
 	this->velocity_pointing[2] = costh;
 	return;
+}
+
+double MCParticles::mcparticle_distribution(double ang_freq, double temp){
+	//久木田(2014)の式2.13
+	return this->band_current->dos_getter(ang_freq) * physconst::bedist(ang_freq, temp) * physconst::dirac * ang_freq;
 }

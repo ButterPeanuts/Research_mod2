@@ -37,6 +37,22 @@ namespace mc_particles{
 			std::vector<band> banddata;
 			
 			mc_sim::logger& logger;
+			
+			/*!
+			 * @brief MC粒子の確率分布関数
+			 * @param ang_freq 各周波数\f$\omega\f$
+			 * @param temp 温度\f$T\f$
+			 * @return MC粒子の確率分布関数の値
+			*/
+			double mcparticle_distribution(double ang_freq, double temp);
+			
+			/*!
+			 * @brief 粒子に弾性散乱を起こす
+			 * @details 弾性散乱(速さが変化せず速度が変化するもの)を起こす
+			 * 中身は速度方向ベクトルの新造
+			 * Scatterで弾性散乱が発生したらこれが呼び出される
+			*/
+			void Elastic_scattering();
 		
 		public :
 			/*! 変位 */
@@ -49,7 +65,7 @@ namespace mc_particles{
 			 * @param Temperature 不明 cppを解析されたい
 			 * @param bandinj バンドデータの注入
 			*/
-			MCParticles(mc_sim::logger& newlogger, double Energy, double Temperature, std::vector<band> bandinj);
+			MCParticles(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj);
 			
 			/*!
 			 * @brief 時間dtの後の状態にMC粒子を遷移させる
@@ -74,13 +90,5 @@ namespace mc_particles{
 			 * @param min_structure 確率P_bに関わるもの Simulationから呼び出せということか
 			*/
 			void Scatter(double Temperature,double dt,double min_structure);
-			
-			/*!
-			 * @brief 粒子に弾性散乱を起こす
-			 * @details 弾性散乱(速さが変化せず速度が変化するもの)を起こす
-			 * 中身は速度方向ベクトルの新造
-			 * Scatterで弾性散乱が発生したらこれが呼び出される
-			*/
-			void Elastic_scattering();
 	};
 }
