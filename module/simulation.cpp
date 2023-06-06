@@ -9,7 +9,7 @@
 #include"massconst.hpp"
 #include"Integral.h"
 #include"mcparticles.hpp"
-simulation::simulation(int numof_mcp, double max_x,double max_y,double max_z,std::vector<int> spacemesh, double tempof_device, curve internal_energy, mc_sim::logger& logger, std::vector<band>& band_inj) :  logger(logger), banddata(band_inj), internal_energy(internal_energy) {
+simulation::simulation(int numof_mcp, double max_x,double max_y,double max_z,std::vector<int> spacemesh, double tempof_device, curve internal_energy, curve heat_cap, mc_sim::logger& logger, std::vector<band>& band_inj) :  logger(logger), banddata(band_inj), internal_energy(internal_energy), heat_cap(heat_cap) {
 	//体積
 	this->volume = max_x * max_y * max_z;
 	
@@ -73,40 +73,38 @@ bool simulation::Temperature_construct() {
 	std::vector<std::vector<std::vector<double>>> MeshEnergy= std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>((int)spacemesh[2], 0)));
 	int index_x,index_y,index_z;
 	//MeshEnergyを計算
-	for (auto i = this->MCParticles.begin(); i < this->MCParticles.end(); i++) {
-		index_x = (int)std::max(0,std::min((int)floor(((*i).position)[0] / this->max_x * spacemesh[0]),spacemesh[0] - 1));
-		index_y = (int)std::max(0,std::min((int)floor(((*i).position)[1] / this->max_y * spacemesh[1]),spacemesh[1] - 1));
-		index_z = (int)std::max(0,std::min((int)floor(((*i).position)[2] / this->max_z * spacemesh[2]),spacemesh[2] - 1));
-		MeshEnergy[index_x][index_y][index_z]+=this->Energy_MCParticles / (max_x * max_y * max_z / spacemesh[0] / spacemesh[1] / spacemesh[2] );
+	std::vector<double> dr = std::vector<double>(3, 0);
+	dr[0] = this->max_x / spacemesh[0];
+	dr[1] = this->max_y / spacemesh[1];
+	dr[2] = this->max_z / spacemesh[2];
+	double drpro = dr[0] * dr[1] * dr[2];
+	
+	#pragma omp parallel for
+	for (int inum = 0; inum < this->MCParticles.size(); inum++) {
+		auto i = this->MCParticles[inum];
+		index_x = static_cast<int>(std::clamp(i.position[0] / dr[0], 0.0, static_cast<double>(spacemesh[0]) - 0.5));
+		index_y = static_cast<int>(std::clamp(i.position[1] / dr[1], 0.0, static_cast<double>(spacemesh[1]) - 0.5));
+		index_z = static_cast<int>(std::clamp(i.position[2] / dr[2], 0.0, static_cast<double>(spacemesh[2]) - 0.5));
+		MeshEnergy[index_x][index_y][index_z] += this->energy_mcparticles / drpro;
 	}
+	#pragma omp barrier
+	
 	//dTは多分Tの差分
 	//Tの変動が少ないと終わるはず
 	double dT = 0;
 	for(int i = 0 ; i < spacemesh[0];i++){
 		for(int j = 0 ; j < spacemesh[1];j++){
+			#pragma omp parallel for
 			for(int k = 0 ; k < spacemesh[2];k++){
 				double old_Temperature = Temperature[i][j][k];
-				auto match = std::find_if(Internal_energy.begin(), Internal_energy.end(),
-				[&](const auto& r) {
-					return (r > MeshEnergy[i][j][k]);
-				});
-				if (match == Internal_energy.begin()) {
-					Temperature[i][j][k] = 0;
-				}else if (match == Internal_energy.end()) {
-					Temperature[i][j][k] = (int)(Internal_energy.end() - Internal_energy.begin()) ;
-				}
-				else {
-					//Temperatureを補間する
-					//matchのイテレーターが当たったTemperature
-					//InternalEnergyのどの位置かで決める?
-					double standard = ((*match) - MeshEnergy[i][j][k]) / ((*match) - *(match - 1));
-					Temperature[i][j][k] = standard * (match - Internal_energy.begin()) + (1.0 - standard) * (match - Internal_energy.begin() - 1);
-				}
+				Temperature[i][j][k] = this->heat_cap.itpl_getter(MeshEnergy[i][j][k]);
 				dT += fabs(old_Temperature - Temperature[i][j][k]);
 			}
+			#pragma omp barrier
 		}
 	}
-	std::cout << dT << std::endl;
+	/* std::cout << dT << std::endl; */
+	this->logger.info("dT is " + std::to_string(dT));
 	/*if (emesh, 3) / 2)return true;
 	else*/ return false;
 }
