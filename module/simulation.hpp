@@ -3,12 +3,16 @@
 #include<string>
 #include"mcparticles.hpp"
 #include<curve.hpp>
+#include<logger.hpp>
 class simulation {
 	private:
+		mc_sim::logger& logger;
+		std::vector<band>& banddata;
 	public:
-		static double Total_energy2(double Temperature);
-		simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh, double, curve);
-		double U, volume,Energy_MCParticles;
+		//physconstへ移転
+		/* static double Total_energy2(double Temperature); */
+		simulation(int, double, double, double, std::vector<int>, double, curve, mc_sim::logger&, std::vector<band>&);
+		double U, volume, energy_mcparticles;
 		//x方向に進むのを想定することに
 		//y方向の薄膜?
 		double max_x, max_y, max_z;

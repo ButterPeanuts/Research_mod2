@@ -9,47 +9,52 @@
 #include"massconst.hpp"
 #include"Integral.h"
 #include"mcparticles.hpp"
-simulation::simulation(int NumberofMCparticles,double max_x,double max_y,double max_z,std::vector<int> spacemesh, double tempof_device, curve internal_energy) : internal_energy(internal_energy) {
+simulation::simulation(int numof_mcp, double max_x,double max_y,double max_z,std::vector<int> spacemesh, double tempof_device, curve internal_energy, mc_sim::logger& logger, std::vector<band>& band_inj) :  logger(logger), banddata(band_inj), internal_energy(internal_energy) {
 	//体積
 	this->volume = max_x * max_y * max_z;
 	
+	
 	//physconstへ移管
-	this->Internal_energy = std::vector<double>(massconst::heatcaps_Tempmax+1, 0.0);
-	Internal_energy[0] = (0);
-	#pragma omp parallel for
-		for (int Temperature = 1; Temperature <= massconst::heatcaps_Tempmax ; Temperature++) {
-			double InE = 0;
-			InE += simulation::Total_energy2(Temperature);
-			Internal_energy[Temperature] = InE;
-		}
-	#pragma omp barrier
-	std::cout << "Internal_energy table was calculated." << std::endl;
+	/* Internal_energy[0] = (0); */
+	/* #pragma omp parallel for */
+	/* 	for (int Temperature = 1; Temperature <= massconst::heatcaps_Tempmax ; Temperature++) { */
+	/* 		double InE = 0; */
+	/* 		InE += simulation::Total_energy2(Temperature); */
+	/* 		Internal_energy[Temperature] = InE; */
+	/* 	} */
+	/* #pragma omp barrier */
+	/* std::cout << "Internal_energy table was calculated." << std::endl; */
 
-	this->U = this->Internal_energy[ShtT] * max_x * max_y * max_z;
+	//全体のエネルギー
+	this->U = this->internal_energy.itpl_getter(tempof_device) * this->volume;
 
-	this->Energy_MCParticles = this->U / NumberofMCparticles;
+	this->energy_mcparticles = this->U / numof_mcp;
 
 	this->max_x = max_x;
 	this->max_y = max_y;
 	this->max_z = max_z;
 	
 	this->MCParticles = std::vector<mc_particles::MCParticles>();
-	for (int i = 0; i < NumberofMCparticles; i++) {
-		this->MCParticles.push_back(mc_particles::MCParticles(this->Energy_MCParticles, (double)(ShtT)));
+	for (int i = 0; i < numof_mcp; i++) {
+		mc_sim::logger& newlogger = this->logger.copy_samesink("mcp" + std::to_string(i));
+		this->MCParticles.push_back(mc_particles::MCParticles(newlogger, static_cast<double>(tempof_device), this->banddata));
 	}
 	this->Temperature = std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>(spacemesh[2], 0.0)));
 	this->spacemesh = spacemesh;
+	
+	this->logger.info("Simulation is constructed");
 }
 
-double simulation::Total_energy2(double Temperature){
-	return Romberg(0, Temperature, 10, 10, [Temperature](double T) {
-		if (T <= 0)return massconst::Si_heatcap[0];
-		if (T >= massconst::heatcaps_Tempmax)return *(massconst::Si_heatcap.end() - 1);
-		double standard = T - std::floor(T);
-		return (1 - standard) * massconst::Si_heatcap[(int)std::floor(T)]
-			+ (standard) * massconst::Si_heatcap[(int)std::floor(T) + 1]; 
-	});
-};
+//massconstへ移転
+/* double simulation::Total_energy2(double Temperature){ */
+/* 	return Romberg(0, Temperature, 10, 10, [Temperature](double T) { */
+/* 		if (T <= 0)return massconst::Si_heatcap[0]; */
+/* 		if (T >= massconst::heatcaps_Tempmax)return *(massconst::Si_heatcap.end() - 1); */
+/* 		double standard = T - std::floor(T); */
+/* 		return (1 - standard) * massconst::Si_heatcap[(int)std::floor(T)] */
+/* 			+ (standard) * massconst::Si_heatcap[(int)std::floor(T) + 1]; */ 
+/* 	}); */
+/* }; */
 
 void simulation::Particle_Disp_output(std::string filename) {
 	std::ofstream files(filename + ".txt");
@@ -61,7 +66,6 @@ void simulation::Particle_Disp_output(std::string filename) {
 		files << i->position[0] << ", "<<i->position[1] <<", "<<i->position[2] <<std::endl;
 	}
 	files.close();
-
 }
 
 bool simulation::Temperature_construct() {
@@ -105,7 +109,6 @@ bool simulation::Temperature_construct() {
 	std::cout << dT << std::endl;
 	/*if (emesh, 3) / 2)return true;
 	else*/ return false;
-
 }
 
 void simulation::Particle_move(double dt) {
