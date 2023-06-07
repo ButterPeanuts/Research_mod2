@@ -66,14 +66,14 @@ target_compile_options(physconst PRIVATE -Wall)
 target_compile_features(physconst PRIVATE cxx_std_20)
 
 
-#mcparticles
-add_library(mcparticles STATIC module/mcparticles.cpp)
+#mcparticle
+add_library(mcparticle STATIC module/mcparticle.cpp)
 
-target_include_directories(mcparticles PUBLIC module)
-target_compile_options(mcparticles PRIVATE -Wall)
-target_compile_features(mcparticles PRIVATE cxx_std_20)
+target_include_directories(mcparticle PUBLIC module)
+target_compile_options(mcparticle PRIVATE -Wall)
+target_compile_features(mcparticle PRIVATE cxx_std_20)
 
-target_link_libraries(mcparticles PRIVATE physconst)
+target_link_libraries(mcparticle PRIVATE physconst)
 
 
 #massconst
@@ -90,7 +90,10 @@ add_library(simulation STATIC module/simulation.cpp)
 target_include_directories(simulation PUBLIC module)
 target_compile_options(simulation PRIVATE -Wall)
 target_compile_options(simulation PRIVATE -fopenmp)
+target_compile_options(simulation PRIVATE -MT)
 target_compile_features(simulation PRIVATE cxx_std_20)
+
+target_link_libraries(simulation PRIVATE mcparticle)
 
 
 #メイン
