@@ -15,8 +15,8 @@
  * 簡単にするならばエネルギーEnergyを持つ粒子複数個の集まり
  * 一つのMC粒子について持つエネルギー(つまりEnergyと粒子の数の積)は一定
 */
-namespace mc_particles{
-	class MCParticles{
+namespace mc_sim{
+	class mc_particle{
 		private :
 			/*! 空間の次元 何のために一般化しているのかはわかりません */
 			static inline const int dimension = 3;
@@ -62,7 +62,7 @@ namespace mc_particles{
 			 * @param Temperature 不明 cppを解析されたい
 			 * @param bandinj バンドデータの注入
 			*/
-			MCParticles(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj);
+			mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj);
 			
 			/*!
 			 * @brief 時間dtの後の状態にMC粒子を遷移させる
