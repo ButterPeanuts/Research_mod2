@@ -12,16 +12,20 @@ class simulation {
 		curve internal_energy;
 		//比熱
 		curve heat_cap;
+		
+		//どのメッシュにいるのか
+		std::vector<int> square(std::vector<double>);
+		//空間メッシュ分割数
+		std::vector<int> spacemesh;
+		//x方向に進むのを想定することに
+		//y方向の薄膜?
+		std::vector<double> max_r;
+		std::vector<double> dr;
 	public:
 		//physconstへ移転
 		/* static double Total_energy2(double Temperature); */
-		simulation(int, double, double, double, std::vector<int>, double, curve, curve, mc_sim::logger&, std::vector<band>&);
+		simulation(int, std::vector<double>, std::vector<int>, double, curve, curve, mc_sim::logger&, std::vector<band>&);
 		double U, volume, energy_mcparticles;
-		//x方向に進むのを想定することに
-		//y方向の薄膜?
-		double max_x, max_y, max_z;
-		//空間メッシュ分割数
-		std::vector<int> spacemesh;
 		//粒子一覧
 		std::vector<mc_particles::MCParticles> MCParticles;
 
