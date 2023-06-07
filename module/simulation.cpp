@@ -7,9 +7,6 @@
 #include<future>
 
 #include"simulation.hpp"
-#include"physconst.hpp"
-#include"massconst.hpp"
-#include"Integral.h"
 #include"mcparticles.hpp"
 simulation::simulation(int numof_mcp, std::vector<double> max_r, std::vector<int> spacemesh, double tempof_device, curve internal_energy, curve heat_cap, mc_sim::logger& logger, std::vector<band>& band_inj) :  logger(logger), banddata(band_inj), internal_energy(internal_energy), heat_cap(heat_cap) {
 	//デバイス大きさ
