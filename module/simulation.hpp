@@ -1,7 +1,7 @@
 #pragma once
 #include<functional>
 #include<string>
-#include"mcparticles.hpp"
+#include"mcparticle.hpp"
 #include<curve.hpp>
 #include<logger.hpp>
 class simulation {
@@ -27,7 +27,7 @@ class simulation {
 		simulation(int, std::vector<double>, std::vector<int>, double, curve, curve, mc_sim::logger&, std::vector<band>&);
 		double U, volume, energy_mcparticles;
 		//粒子一覧
-		std::vector<mc_particles::MCParticles> MCParticles;
+		std::vector<mc_sim::mc_particle> mc_particles;
 
 		//状態密度
 		static std::vector<std::vector<std::vector<std::vector<double>>>> dispersion;

@@ -1,4 +1,4 @@
-#include "mcparticles.hpp"
+#include "mcparticle.hpp"
 
 #include "physconst.hpp"
 #include<band.hpp>
@@ -9,31 +9,31 @@
 #include<numbers>
 #include<iostream>
 
-using namespace mc_particles;
+using namespace mc_sim;
 
-MCParticles::MCParticles(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj) : logger(newlogger){
+mc_particle::mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj) : logger(newlogger){
 	//バンド情報を設定
 	this->banddata = bandinj;
 	
 	//速度方向のベクトルを作る
-	this->velocity_pointing = std::vector<double>(MCParticles::dimension, 0);
+	this->velocity_pointing = std::vector<double>(mc_particle::dimension, 0);
 	
 	//角周波数, バンド, 速度方向といった初期状態を決定
 	this->inelastic_scattering(temperature);
 	
 	//変位の初期状態を決定
-	this->position = std::vector<double>(MCParticles::dimension, 0);
+	this->position = std::vector<double>(mc_particle::dimension, 0);
 }
 
-void MCParticles::nextstep(double dt) {
+void mc_particle::nextstep(double dt) {
 	double velocity = this->band_current->gvelocity_getter(this->angular_frequency);
 	
-	for (int i = 0; i < MCParticles::dimension; i++) {
+	for (int i = 0; i < mc_particle::dimension; i++) {
 		this->position[i] += dt * this->velocity_pointing[i] * velocity;
 	}
 }
 
-void MCParticles::boundaryscatter_b(double max_x, double max_y, double max_z) {
+void mc_particle::boundaryscatter_b(double max_x, double max_y, double max_z) {
 	//ここは気になるときに検証and解説付加でいいのか
 	if ((this->position)[1] < 0 || max_y < this->position[1]) {
 		std::uniform_real_distribution<> randR(0, 1);
@@ -70,7 +70,7 @@ void MCParticles::boundaryscatter_b(double max_x, double max_y, double max_z) {
 	}
 }
 
-void MCParticles::scatter(double temperature,double dt,double min_structure) {
+void mc_particle::scatter(double temperature,double dt,double min_structure) {
 	//バンド情報
 	auto band = this->band_current;
 	
@@ -102,7 +102,7 @@ void MCParticles::scatter(double temperature,double dt,double min_structure) {
 }
 
 //弾性散乱(速さ変化なし,速度ベクトル方向変化)
-void MCParticles::elastic_scattering() {
+void mc_particle::elastic_scattering() {
 	//https://qiita.com/aa_debdeb/items/e416ae8a018692fc07eb も参照のこと
 	std::uniform_real_distribution<> randcosth(-1, 1);
 	double costh = randcosth(physconst::mtrand);
@@ -114,7 +114,7 @@ void MCParticles::elastic_scattering() {
 	return;
 }
 
-void MCParticles::inelastic_scattering(double temperature){
+void mc_particle::inelastic_scattering(double temperature){
 	//https://github.com/ButterPeanuts/Research_mod2/issues/9
 	//このissueの通り, DOSテーブル範囲外の積分は無視できるとして組まれている
 	
