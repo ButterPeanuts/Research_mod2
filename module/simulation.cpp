@@ -104,16 +104,15 @@ bool simulation::Temperature_construct() {
 		}
 	}
 	/* std::cout << dT << std::endl; */
-	this->logger.info("dT is " + std::to_string(dT));
+	this->logger.info("Temperature table is updated. dT is " + std::to_string(dT));
 	/*if (emesh, 3) / 2)return true;
 	else*/ return false;
 }
 
 void simulation::Particle_move(double dt) {
 	#pragma omp parallel for
-	//for (auto i = this->MCParticles.begin(); i < this->MCParticles.end(); i++) {
 	for(int j = 0;j < static_cast<int>(MCParticles.size());j++){
-		auto i = &(MCParticles[j]);
+		mc_particles::MCParticles& i = MCParticles[j];
 		(*i).Nextstep(dt);
 		(*i).Boundary_Scatter_B(this->max_x, this->max_y, this->max_z);
 		int index_x = (int)std::max(0,std::min((int)floor(((*i).position)[0] / this->max_x * this->spacemesh[0]),this->spacemesh[0] - 1));
