@@ -94,10 +94,9 @@ bool simulation::Temperature_construct() {
 	std::vector<std::vector<std::vector<double>>> MeshEnergy= std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>((int)spacemesh[2], 0)));
 	int index_x,index_y,index_z;
 	//MeshEnergyを計算
-	std::vector<double> dr = std::vector<double>(3, 0);
 	double drpro = std::accumulate(this->dr.begin(), this->dr.end(), 1.0, std::multiplies<>());
 	
-	#pragma omp parallel for
+	this->logger.debug("We will construct MeshEnergys.");
 	for (int inum = 0; inum < this->MCParticles.size(); inum++) {
 		auto i = this->MCParticles[inum];
 		index_x = static_cast<int>(std::clamp(i.position[0] / dr[0], 0.0, static_cast<double>(spacemesh[0]) - 0.5));
@@ -105,7 +104,7 @@ bool simulation::Temperature_construct() {
 		index_z = static_cast<int>(std::clamp(i.position[2] / dr[2], 0.0, static_cast<double>(spacemesh[2]) - 0.5));
 		MeshEnergy[index_x][index_y][index_z] += this->energy_mcparticles / drpro;
 	}
-	#pragma omp barrier
+	this->logger.debug("We have just constructed MeshEnergys.");
 	
 	//dTは多分Tの差分
 	//Tの変動が少ないと終わるはず
@@ -116,6 +115,7 @@ bool simulation::Temperature_construct() {
 			for(int k = 0 ; k < spacemesh[2];k++){
 				double old_Temperature = Temperature[i][j][k];
 				Temperature[i][j][k] = this->heat_cap.itpl_getter(MeshEnergy[i][j][k]);
+				#pragma omp atomic
 				dT += fabs(old_Temperature - Temperature[i][j][k]);
 			}
 			#pragma omp barrier
@@ -128,15 +128,27 @@ bool simulation::Temperature_construct() {
 }
 
 void simulation::Particle_move(double dt) {
-	#pragma omp parallel for
-	for(int j = 0;j < static_cast<int>(MCParticles.size());j++){
-		mc_particles::MCParticles& i = MCParticles[j];
-		i.nextstep(dt);
-		i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]);
-		std::vector<int> index = this->square(i.position);
-		i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end()));
+	/* #pragma omp parallel for */
+	/* for(int j = 0;j < static_cast<int>(MCParticles.size());j++){ */
+	/* 	mc_particles::MCParticles& i = MCParticles[j]; */
+	/* 	i.nextstep(dt); */
+	/* 	i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]); */
+	/* 	std::vector<int> index = this->square(i.position); */
+	/* 	i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end())); */
+	/* } */
+	/* #pragma omp barrier */
+	std::vector<std::future<void>> futures;
+	for (auto i: this->MCParticles){
+		futures.emplace_back(std::launch::async, [dt, this, &i](){
+			i.nextstep(dt);
+			i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]);
+			std::vector<int> index = this->square(i.position);
+			i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end()));
+		});
 	}
-	#pragma omp barrier
+	for (auto& i: futures){
+		i.get();
+	}
 }
 
 std::vector<int> simulation::square(std::vector<double> position){
