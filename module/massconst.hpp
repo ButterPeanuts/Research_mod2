@@ -3,15 +3,20 @@
 #include <string>
 #include<functional>
 #include<algorithm>
+
+#include<curve.hpp>
+#include<band.hpp>
+#include<logger.hpp>
 class massconst {
 	private:
 		massconst();
+		
 	public:
 		//バンド番号規則 TA:0,1 LA:2
 		static const double Si_scatter_ATA, Si_scatter_ALA, Si_scatter_BTA, Si_scatter_BLA, Si_scatter_chiTA, Si_scatter_chiLA, Si_scatter_xiTA, Si_scatter_xiLA, Si_scatter_C;
 		static const double Si_lattice_constant;
 		//比熱などを計算するときに考慮する最大の温度
-		static const int heatcaps_Tempmax;
+		static inline const int heatcaps_tempmax = 600;
 		static std::vector<std::vector<std::vector<std::vector<double>>>> Si_dispersion;
 		static std::vector<std::vector<double>> Si_DOS_TA;
 		static std::vector<std::vector<double>> Si_DOS_LA;
@@ -32,7 +37,8 @@ class massconst {
 		static double Si_DOS_table_construct_tetrahedron(double E, int n);
 		
 		//比熱テーブルを構築する
-		static void Si_heatcap_table_construct();
+		//static void Si_heatcap_table_construct();
+		static curve heatcap_curve_construct(std::vector<band>, mc_sim::logger);
 		
 		static double Si_group_velocity(double angular_frequency, int bandnum);
 		

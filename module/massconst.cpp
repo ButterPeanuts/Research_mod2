@@ -1,6 +1,8 @@
 #include"massconst.hpp"
 #include"physconst.hpp"
 #include"Integral.h"
+#include<curve.hpp>
+
 #include<vector>
 #include<omp.h>
 #include<chrono>
@@ -9,6 +11,7 @@
 #include<string>
 #include<functional>
 #include<numbers>
+#include<future>
 
 const double massconst::Si_scatter_ATA = 1.05e-12;
 const double massconst::Si_scatter_ALA = 4.5e-21;
@@ -22,7 +25,6 @@ const double massconst::Si_scatter_C = 4.95e-45;
 
 const double massconst::Si_lattice_constant = 5.4301e-10;
 
-const int massconst::heatcaps_Tempmax = 600;
 
 std::vector<std::vector<std::vector<std::vector<double>>>> massconst::Si_dispersion;
 std::vector<std::vector<double>> massconst::Si_DOS_TA;
@@ -258,21 +260,73 @@ void massconst::Si_dispersion_table_construct() {
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(time).count() << std::endl;
 }
 
-void massconst::Si_heatcap_table_construct() {
+//改修完了?
+curve massconst::heatcap_curve_construct(std::vector<band> banddata, mc_sim::logger newlogger) {
 	//比熱(Heat_cap)の計算
-	Si_heatcap = std::vector<double>(massconst::heatcaps_Tempmax + 1);
-#pragma omp parallel for
-	for (int Temperature = 1; Temperature < massconst::heatcaps_Tempmax + 1; Temperature++) {
-		//C_v(T) --Tにおける比熱--を計算
-		double Heat_cap_T = 0;
-		//TAの方は2つあるので
-		Heat_cap_T += 2 * massconst::Heat_cap_integration([=](double omega) {return massconst::DOS_interpolation(massconst::Si_DOS_TA, omega); }, 1.0e+12, (*(massconst::Si_DOS_TA.end() - 1))[0],Temperature);
-
-		Heat_cap_T += Heat_cap_integration([=](double omega) {return massconst::DOS_interpolation(massconst::Si_DOS_LA, omega); }, 1.0e+10, (*(massconst::Si_DOS_LA.end() - 1))[0],Temperature);
-		(massconst::Si_heatcap)[Temperature] = (Heat_cap_T);
-		std::cout << Temperature << std::endl;
+	curve heatcap(newlogger);
+	heatcap.append(0.0, 0.0);
+	
+	//被積分関数
+	//hbar / k_b, 7.638 * 10 ^ -12
+	double diracpark = physconst::dirac / physconst::boltzmann;
+	//hbar ^ 2 / k_b, 8.055 * 10 ^ -46
+	double dddpk = diracpark * physconst::dirac;
+	auto calculator = [diracpark, dddpk](double omega, band& target_band, double t){
+		//エネルギー比, これが60を超えたあたりがボルツマン近似域
+		//700を超えたあたりがdouble型範囲超過粋
+		//0を超えず, 760ぐらいまではある
+		double energy_ratio = diracpark * omega / t;
+		//被積分関数からボースアインシュタイン統計の部分をぬいたもの
+		//大体10 ^ -10ぐらい
+		double other = dddpk * omega * omega * target_band.dos_getter(omega) / t / t;
+		if (60.0 < energy_ratio){
+			//温度が低いとき, 角周波数が高いとき
+			while (60.0 < energy_ratio){
+				other *= std::exp(-60.0);
+				energy_ratio -= 60.0;
+			}
+			other *= std::exp(-energy_ratio);
+		} else {
+			double exp_er = std::exp(energy_ratio);
+			other *= exp_er;
+			other /= (exp_er - 1);
+			other /= (exp_er - 1);
+		}
+		return other;
+	};
+	std::vector<std::future<double>> futures;
+	for (int t = 1; t < massconst::heatcaps_tempmax + 1; t++) {
+		futures.push_back(std::async(std::launch::async, [t, &banddata, calculator](){
+			//温度tにおける最終的な値を出すlambda
+			double cv = 0;
+			for (band& i: banddata){
+				cv += Romberg(i.dos_leftedge(), i.dos_rightedge(), 7, 7, [calculator, &i, t](double omega){
+					return calculator(omega, i, t);
+				});
+			}
+			return cv;
+		}));
 	}
-#pragma omp barrier
+	for (auto& i: futures){
+		i.get();
+	}
+	return heatcap;
+}
+
+double massconst::Heat_cap_integration(std::function<double(double)> DOS, double a, double b,int Temperature) {
+	return Romberg(a, b, 10, 10, [DOS,Temperature](double omega) {
+		//当初は久木田(2014)の式をそのまま運用していた
+		//Energy_ratioがdouble型の指数上限に引っかかることが判明
+		//Energy_ratio^-1 = inv_Energy_ratioを新たに使用する
+		/*
+		double Energy_ratio = exp(physconst::dirac * omega / physconst::boltzmann / (double)Temperature);
+		std::cout << Energy_ratio << std::endl;
+		*/
+		double inv_Energy_ratio = exp(-1 * physconst::dirac * omega / physconst::boltzmann / (double)Temperature);
+		double res = DOS(omega) * pow(physconst::dirac * omega / (double)Temperature, 2) / physconst::boltzmann * inv_Energy_ratio / pow(1 - inv_Energy_ratio, 2);
+		//std::cout << res << std::endl;
+		return res;
+	});
 }
 
 double massconst::Si_group_velocity(double angular_frequency, int bandnum) {
@@ -451,22 +505,6 @@ double massconst::DOS_interpolation(std::vector<std::vector<double>> DOS, double
 	}
 	double standard = ((*match)[0] - omega) / ((*match)[0] - (*(match - 1))[0]);
 	return standard * (*(match - 1))[1] + (1.0 - standard) * (*match)[1];
-}
-
-double massconst::Heat_cap_integration(std::function<double(double)> DOS, double a, double b,int Temperature) {
-	return Romberg(a, b, 10, 10, [DOS,Temperature](double omega) {
-		//当初は久木田(2014)の式をそのまま運用していた
-		//Energy_ratioがdouble型の指数上限に引っかかることが判明
-		//Energy_ratio^-1 = inv_Energy_ratioを新たに使用する
-		/*
-		double Energy_ratio = exp(physconst::dirac * omega / physconst::boltzmann / (double)Temperature);
-		std::cout << Energy_ratio << std::endl;
-		*/
-		double inv_Energy_ratio = exp(-1 * physconst::dirac * omega / physconst::boltzmann / (double)Temperature);
-		double res = DOS(omega) * pow(physconst::dirac * omega / (double)Temperature, 2) / physconst::boltzmann * inv_Energy_ratio / pow(1 - inv_Energy_ratio, 2);
-		//std::cout << res << std::endl;
-		return res;
-	});
 }
 
 //比熱を保存
