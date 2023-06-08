@@ -56,6 +56,7 @@ double curve::right_edge(){
 
 void curve::append(double x, double y){
 	this->table.push_back({x, y});
+	this->logger.debug(std::to_string(x) + ", " + std::to_string(y) + " is added");
 }
 
 void curve::file_output(std::string filename){
