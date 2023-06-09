@@ -11,10 +11,7 @@
 
 using namespace mc_sim;
 
-mc_particle::mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj) : logger(newlogger){
-	//バンド情報を設定
-	this->banddata = bandinj;
-	
+mc_particle::mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<band>& bandinj) : banddata(bandinj), logger(newlogger){
 	//速度方向のベクトルを作る
 	this->velocity_pointing = std::vector<double>(mc_particle::dimension, 0);
 	
