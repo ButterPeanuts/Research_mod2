@@ -44,20 +44,20 @@ class band{
 	 * @details 詳細は久木田(2013)の式2.13を参照
 	 * @param omega 角周波数\f$\omega\f$
 	*/
-	virtual double domcp_getter(double omega) = 0;
+	//virtual double domcp_getter(double omega) = 0;
 	
 	/*!
 	 * @brief domcp_getterのomegaとして指定しうる範囲を取得する関数
 	 * @return domcp_getterのomegaとして指定しうる範囲のdistribution
 	*/
-	virtual std::uniform_real_distribution<> domcp_omega_distribution_getter() = 0;
+	//virtual std::uniform_real_distribution<> domcp_omega_distribution_getter() = 0;
 	
 	/*!
 	 * @brief モンテカルロ粒子密度(Density of MonteCalro Particle)の範囲を取得する関数
 	 * @details かなり純粋なgetter これがないと棄却法にO(n)かかる
 	 * @brief モンテカルロ粒子密度(Density of MonteCalro Particle)の範囲を表すdistribution
 	*/
-	virtual std::uniform_real_distribution<> domcp_distribution_getter() = 0;
+	//virtual std::uniform_real_distribution<> domcp_distribution_getter() = 0;
 	
 	/*!
 	 * @brief 縦波か横波かを取得する関数
