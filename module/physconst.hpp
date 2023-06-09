@@ -36,9 +36,19 @@ class physconst {
 		static std::pair<bool, double> vonNeumann_rejection(std::function<double(double)> f, std::uniform_real_distribution<> xdist, std::uniform_real_distribution<> fdist);
 		
 		/*!
-		 * @brief ボースアインシュタイン統計関数
+		 * @brief 非推奨
+		 * @details Bose-Einstein統計関数
 		 * @param ang_freq 各周波数\f$\omega\f$
 		 * @param temp 温度\f$T\f$
 		*/
 		static double bedist(double ang_freq, double temp);
+		
+		/*!
+		 * @brief Bose-Einstein統計関数
+		 * @details Bose-Einstein統計関数の定数倍を返す
+		 * @param ang_freq 各周波数\f$\omega\f$
+		 * @param temp 温度\f$T\f$
+		 * @param left_const 統計関数の計算結果にかける定数
+		*/
+		static double bedist2(double ang_freq, double temp, double left_const);
 };

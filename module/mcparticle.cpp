@@ -125,7 +125,7 @@ void mc_particle::inelastic_scattering(double temperature){
 	std::vector<std::function<double(double)>> mcp_dists;
 	std::for_each(this->banddata.begin(), this->banddata.end(), [temperature, &mcp_dists](band& selectedband) -> void{
 		std::function<double(double)> distpart = [temperature, &selectedband](double omega) -> double{
-			return selectedband.dos_getter(omega) * physconst::bedist(omega, temperature) / physconst::dirac / omega;
+			return physconst::bedist2(omega, temperature, selectedband.dos_getter(omega)  / physconst::dirac / omega);
 		};
 		mcp_dists.push_back(distpart);
 	});
