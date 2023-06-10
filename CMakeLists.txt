@@ -38,6 +38,7 @@ target_compile_options(logger_obj PRIVATE "$<$<CONFIG:Debug>:-Og -DMC_SIM_DEBUG>
 target_compile_features(logger_obj PRIVATE cxx_std_20)
 
 target_link_libraries(logger_obj PRIVATE spdlog::spdlog)
+target_include_directories(logger_obj PUBLIC {spdlog_DIR})
 
 
 #curve
@@ -101,6 +102,20 @@ add_executable(main test.cpp)
 
 target_compile_options(main PRIVATE -Wall)
 target_compile_features(main PRIVATE cxx_std_20)
+
+
+
+add_executable(calculator calculator.cpp)
+
+target_compile_options(calculator PRIVATE -Wall)
+target_compile_features(calculator PRIVATE cxx_std_20)
+
+target_link_libraries(calculator PRIVATE massconst)
+target_link_libraries(calculator PRIVATE logger_obj)
+target_link_libraries(calculator PRIVATE band_obj)
+target_link_libraries(calculator PRIVATE curve)
+target_link_libraries(calculator PRIVATE spdlog::spdlog)
+
 
 # target_link_libraries(main PRIVATE massconst)
 # target_link_libraries(main PRIVATE simulation)
