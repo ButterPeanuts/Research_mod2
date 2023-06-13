@@ -254,7 +254,7 @@ void massconst::Si_dispersion_table_construct() {
 */
 
 //改修完了?
-curve massconst::heatcap_curve_construct(std::vector<band> banddata, mc_sim::logger newlogger) {
+curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> banddata, mc_sim::logger newlogger) {
 	//比熱(Heat_cap)の計算
 	curve heatcap(newlogger);
 	heatcap.append(0.0, 0.0);
@@ -292,9 +292,9 @@ curve massconst::heatcap_curve_construct(std::vector<band> banddata, mc_sim::log
 		futures.push_back(std::async(std::launch::async, [t, &banddata, calculator](){
 			//温度tにおける最終的な値を出すlambda
 			double cv = 0;
-			for (band& i: banddata){
-				cv += Romberg(i.dos_leftedge(), i.dos_rightedge(), 7, 7, [calculator, &i, t](double omega){
-					return calculator(omega, i, t);
+			for (std::shared_ptr<band> i: banddata){
+				cv += Romberg(i->dos_leftedge(), i->dos_rightedge(), 7, 7, [calculator, &i, t](double omega){
+					return calculator(omega, *i, t);
 				});
 			}
 			return cv;
