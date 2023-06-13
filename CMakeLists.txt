@@ -116,6 +116,8 @@ target_link_libraries(calculator PRIVATE band_obj)
 target_link_libraries(calculator PRIVATE curve)
 target_link_libraries(calculator PRIVATE spdlog::spdlog)
 
+target_include_directories(calculator PRIVATE ${SPDLOG_SOURCE_DIR})
+
 
 # target_link_libraries(main PRIVATE massconst)
 # target_link_libraries(main PRIVATE simulation)
