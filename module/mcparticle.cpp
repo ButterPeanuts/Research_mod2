@@ -11,7 +11,7 @@
 
 using namespace mc_sim;
 
-mc_particle::mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<band>& bandinj) : banddata(bandinj), logger(newlogger){
+mc_particle::mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<std::shared_ptr<band>> bandinj) : banddata(bandinj), logger(newlogger){
 	//速度方向のベクトルを作る
 	this->velocity_pointing = std::vector<double>(mc_particle::dimension, 0);
 	
@@ -120,17 +120,16 @@ void mc_particle::inelastic_scattering(double temperature){
 	
 	//MC粒子分布関数
 	std::vector<std::function<double(double)>> mcp_dists;
-	std::for_each(this->banddata.begin(), this->banddata.end(), [temperature, &mcp_dists](band& selectedband) -> void{
-		std::function<double(double)> distpart = [temperature, &selectedband](double omega) -> double{
-			return physconst::bedist2(omega, temperature, selectedband.dos_getter(omega)  / physconst::dirac / omega);
-		};
-		mcp_dists.push_back(distpart);
-	});
+	for (std::shared_ptr<band> selectedband: this->banddata){
+		mcp_dists.push_back([temperature, selectedband](double omega) -> double{
+			return physconst::bedist2(omega, temperature, selectedband->dos_getter(omega)  / physconst::dirac / omega);
+		});
+	}
 	
 	while (true) {
 		//どのバンド?
 		int pr = randp(physconst::mtrand);
-		auto selectedband = (this->banddata.begin() + pr);
+		auto selectedband = *(this->banddata.begin() + pr);
 		auto selecteddist = (mcp_dists.begin() + pr);
 		//結果
 		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), selectedband->dos_distribution_getter());
@@ -140,7 +139,7 @@ void mc_particle::inelastic_scattering(double temperature){
 			this->angular_frequency = result.second;
 			this->band_current = selectedband;
 			this->logger.debug("My angular frequency is " + std::to_string(this->angular_frequency));
-			this->logger.debug("My band is " + std::to_string(this->band_current - this->banddata.begin()));
+			this->logger.debug("My band is " + std::to_string(pr));
 			break;
 		}
 	}
