@@ -9,7 +9,7 @@
 
 #include"simulation.hpp"
 #include"mcparticle.hpp"
-simulation::simulation(int numof_mcp, std::vector<double> max_r, std::vector<int> spacemesh, double tempof_device, curve internal_energy, curve heat_cap, mc_sim::logger& logger, std::vector<band>& band_inj) :  logger(logger), banddata(band_inj), internal_energy(internal_energy), heat_cap(heat_cap) {
+simulation::simulation(int numof_mcp, std::vector<double> max_r, std::vector<int> spacemesh, double tempof_device, curve internal_energy, curve heat_cap, mc_sim::logger& logger, std::vector<std::shared_ptr<band>> band_inj) :  logger(logger), banddata(band_inj), internal_energy(internal_energy), heat_cap(heat_cap) {
 	//デバイス大きさ
 	this->max_r = max_r;
 	//体積
@@ -134,12 +134,12 @@ void simulation::Particle_move(double dt) {
 	/* #pragma omp barrier */
 	std::vector<std::future<void>> futures;
 	for (auto i: this->mc_particles){
-		futures.emplace_back(std::launch::async, [dt, this, &i](){
+		futures.push_back(std::async(std::launch::async, [dt, this, &i](){
 			i.nextstep(dt);
 			i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]);
 			std::vector<int> index = this->square(i.position);
 			i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end()));
-		});
+		}));
 	}
 	for (auto& i: futures){
 		i.get();

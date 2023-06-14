@@ -8,6 +8,7 @@
 #include<vector>
 #include<band.hpp>
 #include<logger.hpp>
+#include<memory>
 /**
  * @brief モンテカルロ粒子のクラス
  * @details モンテカルロ粒子 略してMCParticle
@@ -31,10 +32,10 @@ namespace mc_sim{
 			double charge = 0;
 			
 			/*! 現在のバンド 参照する分散関係など */
-			std::vector<band>::iterator band_current;
+			std::shared_ptr<band> band_current;
 			
 			/*! 粒子が取りうるすべてのバンド情報 */
-			std::vector<band> banddata;
+			std::vector<std::shared_ptr<band>> banddata;
 			
 			mc_sim::logger& logger;
 			
@@ -62,7 +63,7 @@ namespace mc_sim{
 			 * @param Temperature 不明 cppを解析されたい
 			 * @param bandinj バンドデータの注入
 			*/
-			mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<band> bandinj);
+			mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<std::shared_ptr<band>> bandinj);
 			
 			/*!
 			 * @brief 時間dtの後の状態にMC粒子を遷移させる

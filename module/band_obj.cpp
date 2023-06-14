@@ -27,17 +27,17 @@ double band_obj::gvelocity_getter(double omega){
 	return this->gvelocity.itpl_getter(omega);
 }
 
-double band_obj::domcp_getter(double omega){
-	return this->domcp.itpl_getter(omega);
-}
+/* double band_obj::domcp_getter(double omega){ */
+/* 	return this->domcp.itpl_getter(omega); */
+/* } */
 
-std::uniform_real_distribution<> band_obj::domcp_omega_distribution_getter(){
-	return std::uniform_real_distribution<>(this->domcp.left_edge(), this->domcp.right_edge());
-}
+/* std::uniform_real_distribution<> band_obj::domcp_omega_distribution_getter(){ */
+/* 	return std::uniform_real_distribution<>(this->domcp.left_edge(), this->domcp.right_edge()); */
+/* } */
 
-std::uniform_real_distribution<> band_obj::domcp_distribution_getter(){
-	return std::uniform_real_distribution<>(0, this->domcp_max);
-}
+/* std::uniform_real_distribution<> band_obj::domcp_distribution_getter(){ */
+/* 	return std::uniform_real_distribution<>(0, this->domcp_max); */
+/* } */
 
 wave_direction band_obj::directions_getter(){
 	return this->directions;
