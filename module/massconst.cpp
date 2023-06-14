@@ -9,6 +9,7 @@
 #include<functional>
 #include<numbers>
 #include<future>
+#include<memory>
 
 
 /* const double massconst::Si_lattice_constant = 5.4301e-10; */
@@ -254,7 +255,7 @@ void massconst::Si_dispersion_table_construct() {
 */
 
 //改修完了?
-curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> banddata, mc_sim::logger newlogger) {
+curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> banddata, mc_sim::logger& newlogger) {
 	//比熱(Heat_cap)の計算
 	curve heatcap(newlogger);
 	heatcap.append(0.0, 0.0);

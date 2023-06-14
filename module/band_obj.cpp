@@ -26,6 +26,14 @@ double band_obj::gvelocity_getter(double omega){
 	return this->gvelocity.itpl_getter(omega);
 }
 
+double band_obj::dos_leftedge(){
+	return this->dos.left_edge();
+}
+
+double band_obj::dos_rightedge(){
+	return this->dos.right_edge();
+}
+
 /* double band_obj::domcp_getter(double omega){ */
 /* 	return this->domcp.itpl_getter(omega); */
 /* } */

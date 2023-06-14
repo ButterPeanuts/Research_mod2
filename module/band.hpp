@@ -34,6 +34,18 @@ class band{
 	virtual std::uniform_real_distribution<> dos_distribution_getter() = 0;
 	
 	/*!
+	 * @brief dos_getterのomegaとして指定しうる範囲の下端を取得する関数
+	 * @return dos_getterのomegaとして指定しうる範囲の下端(double)
+	*/
+	virtual double dos_leftedge() = 0;
+	
+	/*!
+	 * @brief dos_getterのomegaとして指定しうる範囲の上端を取得する関数
+	 * @return dos_getterのomegaとして指定しうる範囲の上端(double)
+	*/
+	virtual double dos_rightedge() = 0;
+	
+	/*!
 	 * @brief 群速度(Group velocity)を取得する関数
 	 * @param omega 角周波数\f$\omega\f$
 	*/
