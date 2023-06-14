@@ -18,19 +18,19 @@ class curve{
 	/*! プロットデータを表す */
 	std::vector<std::pair<double, double>> table;
 	
-	mc_sim::logger& logger;
+	std::shared_ptr<mc_sim::logger> logger;
 	
 	public:
 	/*!
 	 * @brief コンストラクタ
 	*/
-	curve(mc_sim::logger& newlogger);
+	curve(std::shared_ptr<mc_sim::logger>& newlogger);
 	
 	/*!
 	 * @brief コンストラクタ ファイルからのデータを予め読む
 	 * @param filename 読み込むファイル名を指定する
 	*/
-	curve(mc_sim::logger& newlogger, std::string filename);
+	curve(std::shared_ptr<mc_sim::logger>& newlogger, std::string filename);
 	
 	/*!
 	 * @brief プロットデータを補間して返す
