@@ -10,13 +10,13 @@
 #include<logger.hpp>
 
 
-curve::curve(mc_sim::logger& newlogger) : logger(newlogger){
+curve::curve(std::shared_ptr<mc_sim::logger>& newlogger) : logger(newlogger){
 	this->table = std::vector<std::pair<double, double>>();
 	this->logger = newlogger;
-	this->logger.debug("The curve is born now!");
+	this->logger->debug("The curve is born now!");
 }
 
-curve::curve(mc_sim::logger& newlogger, std::string filename) : curve(newlogger){
+curve::curve(std::shared_ptr<mc_sim::logger>& newlogger, std::string filename) : curve(newlogger){
 	this->file_input(filename);
 }
 
@@ -56,13 +56,13 @@ double curve::right_edge(){
 
 void curve::append(double x, double y){
 	this->table.push_back({x, y});
-	this->logger.debug(std::to_string(x) + ", " + std::to_string(y) + " is added");
+	this->logger->debug(std::to_string(x) + ", " + std::to_string(y) + " is added");
 }
 
 void curve::file_output(std::string filename){
 	std::ofstream file(filename);
 	if (!file) {
-		this->logger.warn(filename + "の保存に失敗しました");
+		this->logger->warn(filename + "の保存に失敗しました");
 		return;
 	}
 	
@@ -71,13 +71,13 @@ void curve::file_output(std::string filename){
 	}
 	
 	file.close();
-	this->logger.info(filename + "の保存に成功しました");
+	this->logger->info(filename + "の保存に成功しました");
 }
 
 void curve::file_input(std::string filename){
 	std::ifstream file(filename);
 	if (!file) {
-		this->logger.warn(filename + "の読み込みに失敗しました");
+		this->logger->warn(filename + "の読み込みに失敗しました");
 		return;
 	}
 	std::string string_buffer;
@@ -93,5 +93,5 @@ void curve::file_input(std::string filename){
 		this->table.push_back({partx, party});
 	}
 	file.close();
-	this->logger.info(filename + "の読み込みに成功しました");
+	this->logger->info(filename + "の読み込みに成功しました");
 }
