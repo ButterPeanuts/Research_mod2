@@ -20,11 +20,11 @@
 */
 class band_obj : public band{
 	private:
-		curve dos, gvelocity, domcp;
+		curve& dos, gvelocity, domcp;
 		double domcp_max, dos_max;
 		wave_direction directions;
 		wave_mode mode;
-		scatconst bands_scatconst;
+		scatconst& bands_scatconst;
 		std::shared_ptr<mc_sim::logger> logger;
 	public:
 		band_obj(std::shared_ptr<mc_sim::logger>& newlogger, curve& dos, curve& gvelocity, curve& domcp, wave_direction direction, wave_mode mode, scatconst& bands_scatconst);
