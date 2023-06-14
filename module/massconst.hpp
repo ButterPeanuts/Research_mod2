@@ -34,7 +34,7 @@ class massconst {
 		
 		//比熱テーブルを構築する
 		//static void Si_heatcap_table_construct();
-		static curve heatcap_curve_construct(std::vector<std::shared_ptr<band>>, mc_sim::logger&);
+		static curve heatcap_curve_construct(std::vector<std::shared_ptr<band>>, std::shared_ptr<mc_sim::logger>&);
 		
 		/* static double Si_group_velocity(double angular_frequency, int bandnum); */
 };
