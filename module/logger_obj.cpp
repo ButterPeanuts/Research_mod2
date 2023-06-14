@@ -27,9 +27,9 @@ void logger_obj::set_interface(std::string logger_name){
 }
 
 //thisのシンクを流用して作ったロガーを返す
-logger_obj& logger_obj::copy_samesink(std::string logger_name){
+std::unique_ptr<logger> logger_obj::copy_samesink(std::string logger_name){
 	logger_obj samesinklogger(logger_name, this->logger_sink);
-	return samesinklogger;
+	return std::make_unique<logger_obj>(samesinklogger);
 }
 
 void logger_obj::debug(std::string data){
