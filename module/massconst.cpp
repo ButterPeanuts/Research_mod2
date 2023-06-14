@@ -288,7 +288,7 @@ curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> band
 		}
 		return other;
 	};
-	std::vector<std::future<double>> futures;
+	std::vector<std::future<std::pair<int, double>>> futures;
 	for (int t = 1; t < massconst::heatcaps_tempmax + 1; t++) {
 		futures.push_back(std::async(std::launch::async, [t, &banddata, calculator](){
 			//温度tにおける最終的な値を出すlambda
@@ -298,11 +298,12 @@ curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> band
 					return calculator(omega, *i, t);
 				});
 			}
-			return cv;
+			return std::make_pair(t, cv);
 		}));
 	}
 	for (auto& i: futures){
-		i.get();
+		auto res = i.get();
+		heatcap.append(res.first, res.second);
 	}
 	return heatcap;
 }

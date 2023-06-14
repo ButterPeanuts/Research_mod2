@@ -12,8 +12,8 @@ project(mc_sim)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 #Debug/Releaseのどちらのビルドかコンパイラにわたす
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DBUILD_TYPE=\\\"Debug\\\"")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DBUILD_TYPE=\\\"Release\\\"")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DBUILD_TYPE=\\\"Debug\\\"")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DBUILD_TYPE=\\\"Release\\\"")
 
 
 #spdlog
@@ -34,10 +34,21 @@ add_library(logger_obj STATIC module/logger_obj.cpp)
 
 target_include_directories(logger_obj PUBLIC module)
 target_compile_options(logger_obj PRIVATE -Wall)
-target_compile_options(logger_obj PRIVATE "$<$<CONFIG:Debug>:-Og -DMC_SIM_DEBUG>")
+target_compile_options(logger_obj PRIVATE "$<$<CONFIG:Debug>:-Og>")
+target_compile_options(logger_obj PRIVATE "$<$<CONFIG:Debug>:-DMC_SIM_DEBUG>")
 target_compile_features(logger_obj PRIVATE cxx_std_20)
 
 target_link_libraries(logger_obj PRIVATE spdlog::spdlog)
+target_include_directories(logger_obj PUBLIC {spdlog_DIR})
+
+
+#scatconst
+add_library(scatconst STATIC module/scatconst.cpp)
+
+target_include_directories(scatconst PUBLIC module)
+
+target_compile_options(scatconst PRIVATE -Wall)
+target_compile_features(scatconst PRIVATE cxx_std_20)
 
 
 #curve
@@ -56,6 +67,7 @@ target_compile_options(band_obj PRIVATE -Wall)
 target_compile_features(band_obj PRIVATE cxx_std_20)
 
 target_link_libraries(band_obj PRIVATE curve)
+target_link_libraries(band_obj PRIVATE scatconst)
 
 
 #physconst
@@ -83,6 +95,8 @@ target_include_directories(massconst PUBLIC module)
 target_compile_options(massconst PRIVATE -Wall)
 target_compile_features(massconst PRIVATE cxx_std_20)
 
+target_link_libraries(massconst PRIVATE integral)
+
 
 #simulation
 add_library(simulation STATIC module/simulation.cpp)
@@ -96,11 +110,30 @@ target_compile_features(simulation PRIVATE cxx_std_20)
 target_link_libraries(simulation PRIVATE mcparticle)
 
 
+
+
 #メイン
 add_executable(main test.cpp)
 
 target_compile_options(main PRIVATE -Wall)
 target_compile_features(main PRIVATE cxx_std_20)
+
+
+
+add_executable(calculator calculator.cpp)
+
+target_compile_options(calculator PRIVATE -Wall)
+target_compile_features(calculator PRIVATE cxx_std_20)
+
+target_link_libraries(calculator PRIVATE massconst)
+target_link_libraries(calculator PRIVATE logger_obj)
+target_link_libraries(calculator PRIVATE band_obj)
+target_link_libraries(calculator PRIVATE curve)
+target_link_libraries(calculator PRIVATE spdlog::spdlog)
+target_link_libraries(calculator PRIVATE scatconst)
+
+target_include_directories(calculator PRIVATE ${spdlog_DIR})
+
 
 # target_link_libraries(main PRIVATE massconst)
 # target_link_libraries(main PRIVATE simulation)
