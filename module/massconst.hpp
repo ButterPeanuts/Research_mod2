@@ -16,7 +16,7 @@ class massconst {
 		//格子定数 どこに使われてるんだろう
 		//static const double Si_lattice_constant;
 		//比熱などを計算するときに考慮する最大の温度
-		static inline const int heatcaps_tempmax = 600;
+		static inline const int heatcaps_tempmax = 1200;
 		//四面体分割数
 		static int Ndiv;
 		//整列済みのE_Edgeに対して,k空間体積(鎌倉p17)を計算
