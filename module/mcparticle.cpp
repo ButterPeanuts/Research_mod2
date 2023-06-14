@@ -11,7 +11,7 @@
 
 using namespace mc_sim;
 
-mc_particle::mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<std::shared_ptr<band>> bandinj) : banddata(bandinj), logger(newlogger){
+mc_particle::mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, double temperature, const std::vector<std::shared_ptr<band>>& bandinj) : banddata(bandinj), logger(newlogger){
 	//速度方向のベクトルを作る
 	this->velocity_pointing = std::vector<double>(mc_particle::dimension, 0);
 	
@@ -138,8 +138,8 @@ void mc_particle::inelastic_scattering(double temperature){
 			//採用なら...
 			this->angular_frequency = result.second;
 			this->band_current = selectedband;
-			this->logger.debug("My angular frequency is " + std::to_string(this->angular_frequency));
-			this->logger.debug("My band is " + std::to_string(pr));
+			this->logger->debug("My angular frequency is " + std::to_string(this->angular_frequency));
+			this->logger->debug("My band is " + std::to_string(pr));
 			break;
 		}
 	}
