@@ -53,6 +53,18 @@ class band_obj : public band{
 		double gvelocity_getter(double omega) override;
 		
 		/*!
+		 * @brief dos_getterのomegaとして指定しうる範囲の下端を取得する関数
+		 * @return dos_getterのomegaとして指定しうる範囲の下端(double)
+		*/
+		double dos_leftedge() override;
+		
+		/*!
+		 * @brief dos_getterのomegaとして指定しうる範囲の上端を取得する関数
+		 * @return dos_getterのomegaとして指定しうる範囲の上端(double)
+		*/
+		double dos_rightedge() override;
+		
+		/*!
 		 * @brief モンテカルロ粒子密度(Density of MonteCalro Particle)を取得する関数
 		 * @details 詳細は久木田(2013)の式2.13を参照
 		 * @param omega 角周波数\f$\omega\f$
