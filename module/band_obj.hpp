@@ -25,9 +25,9 @@ class band_obj : public band{
 		wave_direction directions;
 		wave_mode mode;
 		scatconst bands_scatconst;
-		mc_sim::logger& logger;
+		std::shared_ptr<mc_sim::logger> logger;
 	public:
-		band_obj(mc_sim::logger& newlogger, curve dos, curve gvelocity, curve domcp, wave_direction direction, wave_mode mode, scatconst bands_scatconst);
+		band_obj(std::shared_ptr<mc_sim::logger>& newlogger, curve& dos, curve& gvelocity, curve& domcp, wave_direction direction, wave_mode mode, scatconst& bands_scatconst);
 		/*!
 		 * @brief 状態密度(Density of State)を取得する関数
 		 * @param omega 角周波数\f$\omega\f$
