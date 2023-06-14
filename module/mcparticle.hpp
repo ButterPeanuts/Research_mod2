@@ -35,9 +35,9 @@ namespace mc_sim{
 			std::shared_ptr<band> band_current;
 			
 			/*! 粒子が取りうるすべてのバンド情報 */
-			std::vector<std::shared_ptr<band>> banddata;
+			const std::vector<std::shared_ptr<band>>& banddata;
 			
-			mc_sim::logger& logger;
+			std::shared_ptr<mc_sim::logger> logger;
 			
 			/*!
 			 * @brief 粒子に弾性散乱を起こす
@@ -63,7 +63,7 @@ namespace mc_sim{
 			 * @param Temperature 不明 cppを解析されたい
 			 * @param bandinj バンドデータの注入
 			*/
-			mc_particle(mc_sim::logger& newlogger, double temperature, std::vector<std::shared_ptr<band>> bandinj);
+			mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, double temperature, const std::vector<std::shared_ptr<band>>& bandinj);
 			
 			/*!
 			 * @brief 時間dtの後の状態にMC粒子を遷移させる

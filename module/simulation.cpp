@@ -9,7 +9,7 @@
 
 #include"simulation.hpp"
 #include"mcparticle.hpp"
-simulation::simulation(int numof_mcp, std::vector<double> max_r, std::vector<int> spacemesh, double tempof_device, curve internal_energy, curve heat_cap, mc_sim::logger& logger, std::vector<std::shared_ptr<band>> band_inj) :  logger(logger), banddata(band_inj), internal_energy(internal_energy), heat_cap(heat_cap) {
+simulation::simulation(int numof_mcp, std::vector<double>& max_r, std::vector<int>& spacemesh, double tempof_device, curve& internal_energy, curve& heat_cap, std::shared_ptr<mc_sim::logger>& logger, std::vector<std::shared_ptr<band>>& band_inj) :  logger(logger), banddata(band_inj), internal_energy(internal_energy), heat_cap(heat_cap) {
 	//デバイス大きさ
 	this->max_r = max_r;
 	//体積
@@ -40,28 +40,28 @@ simulation::simulation(int numof_mcp, std::vector<double> max_r, std::vector<int
 
 	this->energy_mcparticles = this->U / numof_mcp;
 	
-	this->logger.debug("We will construct mcparticles.");
+	this->logger->debug("We will construct mcparticles.");
 	
 	//MC粒子の初期化開始
 	this->mc_particles = std::vector<mc_sim::mc_particle>();
 	#pragma omp parallel for
 	for (int i = 0; i < numof_mcp; i++) {
-		mc_sim::logger& newlogger = this->logger.copy_samesink("mcp" + std::to_string(i));
+		std::shared_ptr<mc_sim::logger> newlogger = this->logger->copy_samesink("mcp" + std::to_string(i));
 		auto mcp_part = mc_sim::mc_particle(newlogger, static_cast<double>(tempof_device), this->banddata);
 		//本来criticalはあまりスピード的に優越しない
 		//ただ今回はmcparticlesのコンストラクトのほうが支配的な時間をかけるという仮定の元やってみる
 		#pragma omp critical(mcparticle_pushback)
 		{
 			this->mc_particles.push_back(mcp_part);
-			this->logger.debug("mcp" + std::to_string(i) + " is constructed.");
+			this->logger->debug("mcp" + std::to_string(i) + " is constructed.");
 		}
 	}
 	#pragma omp barrier
-	this->logger.debug("We have just constructed mcparticles.");
+	this->logger->debug("We have just constructed mcparticles.");
 	
 	this->Temperature = std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>(spacemesh[2], 0.0)));
 	
-	this->logger.info("Simulation is constructed");
+	this->logger->info("Simulation is constructed");
 }
 
 //massconstへ移転
@@ -94,12 +94,12 @@ bool simulation::Temperature_construct() {
 	//MeshEnergyを計算
 	double drpro = std::accumulate(this->dr.begin(), this->dr.end(), 1.0, std::multiplies<>());
 	
-	this->logger.debug("We will construct MeshEnergys.");
+	this->logger->debug("We will construct MeshEnergys.");
 	for (auto i: mc_particles){
 		auto index = this->square(i.position);
 		MeshEnergy[index[0]][index[1]][index[2]] += this->energy_mcparticles / drpro;
 	}
-	this->logger.debug("We have just constructed MeshEnergys.");
+	this->logger->debug("We have just constructed MeshEnergys.");
 	
 	//dTは多分Tの差分
 	//Tの変動が少ないと終わるはず
@@ -117,7 +117,7 @@ bool simulation::Temperature_construct() {
 		}
 	}
 	/* std::cout << dT << std::endl; */
-	this->logger.info("Temperature table is updated. dT is " + std::to_string(dT));
+	this->logger->info("Temperature table is updated. dT is " + std::to_string(dT));
 	/*if (emesh, 3) / 2)return true;
 	else*/ return false;
 }

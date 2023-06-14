@@ -10,6 +10,7 @@
 */
 
 #include <string>
+#include <memory>
 namespace mc_sim{
 	class logger{
 		public:
@@ -19,7 +20,7 @@ namespace mc_sim{
 		 * @param logger_name ロガーの表示名
 		 * @return mc_sim::logger_obj 同じシンクを持つが, thisとは違うロガー
 		*/
-		virtual mc_sim::logger& copy_samesink(std::string logger_name) = 0;
+		virtual std::unique_ptr<mc_sim::logger> copy_samesink(std::string logger_name) = 0;
 		
 		virtual void debug(std::string data) = 0;
 		virtual void info(std::string data) = 0;

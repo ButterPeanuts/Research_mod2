@@ -6,17 +6,17 @@
 #include<logger.hpp>
 
 
-scatconst::scatconst(mc_sim::logger& newlogger, std::string filename) : logger(newlogger){
+scatconst::scatconst(std::shared_ptr<mc_sim::logger>& newlogger, std::string filename) : logger(newlogger){
 	this->table = std::vector<double>();
 	this->logger = newlogger;
 	this->file_input(filename);
-	this->logger.debug("I'll get " + filename);
+	this->logger->debug("I'll get " + filename);
 }
 
 void scatconst::file_input(std::string filename){
 	std::ifstream file(filename);
 	if (!file) {
-		this->logger.warn(filename + "の読み込みに失敗しました");
+		this->logger->warn(filename + "の読み込みに失敗しました");
 		return;
 	}
 	std::string string_buffer;
@@ -26,7 +26,7 @@ void scatconst::file_input(std::string filename){
 		this->table.push_back(part);
 	}
 	file.close();
-	this->logger.info(filename + "の読み込みに成功しました");
+	this->logger->info(filename + "の読み込みに成功しました");
 }
 
 double scatconst::a(){return this->table[0];}
