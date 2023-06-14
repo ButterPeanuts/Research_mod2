@@ -254,7 +254,7 @@ void massconst::Si_dispersion_table_construct() {
 */
 
 //改修完了?
-curve massconst::heatcap_curve_construct(std::vector<band> banddata, mc_sim::logger newlogger) {
+curve massconst::heatcap_curve_construct(std::vector<band> banddata, mc_sim::logger& newlogger) {
 	//比熱(Heat_cap)の計算
 	curve heatcap(newlogger);
 	heatcap.append(0.0, 0.0);
