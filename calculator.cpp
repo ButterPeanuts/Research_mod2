@@ -26,5 +26,6 @@ int main(){
 	bandlist.push_back(band_la);
 	bandlist.push_back(band_ta);
 	bandlist.push_back(band_ta);
-	massconst::heatcap_curve_construct(bandlist, logobj);
+	curve heatcap(massconst::heatcap_curve_construct(bandlist, logobj));
+	heatcap.file_output("data/Si_heatcap_48neo.txt");
 }
