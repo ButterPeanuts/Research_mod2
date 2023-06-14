@@ -16,7 +16,7 @@
 class scatconst{
 	private:
 	/*! ロガー */
-	mc_sim::logger& logger;
+	std::shared_ptr<mc_sim::logger> logger;
 	
 	/*! 係数を表す */
 	std::vector<double> table;
@@ -32,7 +32,7 @@ class scatconst{
 	 * @brief コンストラクタ ファイルからのデータを予め読む
 	 * @param filename 読み込むファイル名を指定する
 	*/
-	scatconst(mc_sim::logger& newlogger, std::string filename);
+	scatconst(std::shared_ptr<mc_sim::logger>& newlogger, std::string filename);
 	
 	double a();
 	double b();
