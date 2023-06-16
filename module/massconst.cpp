@@ -64,7 +64,6 @@ double massconst::k_volume(std::vector<double> E_Edge, double E) {
 	}
 };
 */
-/*
 double massconst::Si_angular_wavenumber(std::vector<double> Normalized_angular_wavenumber, int bandnum){
 	const double Norm_kr = std::sqrt(pow(Normalized_angular_wavenumber[0], 2) + pow(Normalized_angular_wavenumber[1], 2) + pow(Normalized_angular_wavenumber[2], 2));
 	const double k_rTA = 0.403;
@@ -85,13 +84,9 @@ double massconst::Si_angular_wavenumber(std::vector<double> Normalized_angular_w
 		}
 	}
 }
-*/
 
-/*
 void massconst::Si_DOS_table_construct() {
 	auto start = std::chrono::system_clock::now();
-	*/
-	/*
 	for (int n = 0; n <= 2; n += 2){
 		for (int i = 0; i <= massconst::Ndiv; i++) {
 			for (int j = 0; j <= i; j++) {
@@ -131,8 +126,6 @@ void massconst::Si_DOS_table_construct() {
 	}
 	std::sort(massconst::Si_DOS_TA.begin(), massconst::Si_DOS_TA.end(), [](const std::vector<double>& alpha, const std::vector<double>& beta) {return alpha[0] < beta[0]; });
 	std::sort(massconst::Si_DOS_LA.begin(), massconst::Si_DOS_LA.end(), [](const std::vector<double>& alpha, const std::vector<double>& beta) {return alpha[0] < beta[0]; });
-	*/
-	/*
 	for (int n = 0; n <= 2; n += 2) {
 		double capE = (n == 0 ? 3.0e+13 : 1.0e+14);
 		for (double tempE = 1.0e+10; tempE <= capE; (tempE >= 1.0e+13 ? tempE += 1.0e+12 : tempE *= 1.1)) {
@@ -227,7 +220,6 @@ double massconst::Si_DOS_table_construct_tetrahedron(double E, int n) {
 #pragma omp barrier
 	return VS;
 }
-*/
 
 /*
 void massconst::Si_dispersion_table_construct() {
