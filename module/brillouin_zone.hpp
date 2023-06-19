@@ -25,10 +25,19 @@ namespace mc_sim{
 		
 		/*!
 		 * @brief メッシュ座標から記録されている角周波数を返す
-		 * @details 
 		 * @param std::tuple<int, int, int> メッシュ座標系でx, y, zの座標を指定するtuple
 		 * @return 角周波数
 		*/
 		virtual double angfreq_index(std::tuple<int, int, int>) = 0;
+		
+		/*!
+		 * @brief 縦波か横波かを取得する関数
+		*/
+		virtual wave_direction directions_getter() = 0;
+		
+		/*!
+		 * @brief 音響波か光学波か取得する関数
+		*/
+		virtual wave_mode mode_getter() = 0;
 	};
 }
