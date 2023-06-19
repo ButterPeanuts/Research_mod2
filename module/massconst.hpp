@@ -1,3 +1,9 @@
+/*!
+ * @file massconst.hpp
+ * @brief 物理定数, 物理関数計算に関するヘルパー
+ * @author ButterPeanuts
+ * @data 2023-06-19
+*/
 #pragma once
 #include <vector>
 #include <string>
@@ -8,9 +14,21 @@
 #include<curve.hpp>
 #include<band.hpp>
 #include<logger.hpp>
+
+/*!
+ * @brief 物理定数, 物理関数計算に関するヘルパー
+*/
 class massconst {
 	private:
 		massconst();
+		
+		/*!
+		 * @brief 整列済みの四面体頂点における角周波数に対して, k空間体積微分(rath(1973))を計算
+		 * @param std::tuple<double, double, double, dobule> 四面体頂点における角周波数
+		 * @param double 求めたい面の角周波数
+		 * @return 四面体内規格化体積
+		*/
+		static double k_volume(std::tuple<double, double, double, double> const &, double omega);
 		
 	public:
 		//格子定数 どこに使われてるんだろう
@@ -18,8 +36,6 @@ class massconst {
 		/*! 比熱などを計算するときに考慮する最大の温度 */
 		static inline const int heatcaps_tempmax = 1200;
 		
-		//整列済みのE_Edgeに対して,k空間体積(鎌倉p17)を計算
-		static double k_volume(std::tuple<double, double, double, double> const &, double omega);
 		//static double Si_angular_wavenumber(std::vector<double> Normalized_angular_wavenumber, int bandnum);
 		
 		//分散関係テーブルを構築する
