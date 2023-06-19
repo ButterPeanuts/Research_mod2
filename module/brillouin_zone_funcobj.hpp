@@ -29,7 +29,7 @@ namespace mc_sim{
 		 * @details 波数空間上の規格座標とは, \f$\Lambda\f$点を0, (正の)\f$X\f$点を1とする座標
 		 * @param std::tuple<double, double, double> 波数空間上の規格座標
 		*/
-		std::function<double(std::tuple<double, double, double> const &)> const & disparsion_calc;
+		std::function<double(std::tuple<double, double, double> const &)> const & dispersion_calc;
 		
 		public:
 		/*!
