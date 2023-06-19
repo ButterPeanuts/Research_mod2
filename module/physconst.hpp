@@ -60,4 +60,11 @@ class physconst {
 		 * @return std::tuple<double, double, double> 規格化座標
 		*/
 		static std::tuple<double, double, double> indextostd(std::tuple<int, int, int> const &, int const);
+		
+		/*!
+		 * @brief エウクレイデス距離(ユークリッド距離)を求める
+		 * @param std::tuple<double, double, double> 座標
+		 * @return エウクレイデス距離
+		*/
+		static double eukleideia_metrike(std::tuple<double, double, double> const &);
 };
