@@ -15,12 +15,11 @@ class massconst {
 	public:
 		//格子定数 どこに使われてるんだろう
 		//static const double Si_lattice_constant;
-		//比熱などを計算するときに考慮する最大の温度
+		/*! 比熱などを計算するときに考慮する最大の温度 */
 		static inline const int heatcaps_tempmax = 1200;
-		//四面体分割数
-		static int Ndiv;
+		
 		//整列済みのE_Edgeに対して,k空間体積(鎌倉p17)を計算
-		//static double k_volume(std::vector<double> E_Edge, double E);
+		static double k_volume(std::tuple<double, double, double, double> const &, double omega);
 		//static double Si_angular_wavenumber(std::vector<double> Normalized_angular_wavenumber, int bandnum);
 		
 		//分散関係テーブルを構築する

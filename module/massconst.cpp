@@ -12,58 +12,41 @@
 #include<memory>
 
 
-/* const double massconst::Si_lattice_constant = 5.4301e-10; */
-
-
-int massconst::Ndiv;
 
 //整列済みのE_Edgeに対して,k空間体積微分(rath(1973))を計算
-/*
-double massconst::k_volume(std::vector<double> E_Edge, double E) {
-	double E10 = E_Edge[1] - E_Edge[0];
-	double E20 = E_Edge[2] - E_Edge[0];
-	double E30 = E_Edge[3] - E_Edge[0];
-	double E21 = E_Edge[2] - E_Edge[1];
-	double E31 = E_Edge[3] - E_Edge[1];
-	double E32 = E_Edge[3] - E_Edge[2];
-	double f0 = (E - E_Edge[0]) * (E - E_Edge[0]) / (E10 * E20 * E30) / 2;
-	double f1 = (E - E_Edge[1]) * (E - E_Edge[1]) / (E10 * E21 * E31) / 2;
-	double f3 = (E - E_Edge[3]) * (E - E_Edge[3]) / (E30 * E31 * E32) / 2;
-	if (E <= E_Edge[0]) {
+double massconst::k_volume(std::tuple<double, double, double, double> const & omega_edge, double omega){
+	if (omega <= std::get<0>(omega_edge)) {
 		return 0;
 	}
-	if (E < E_Edge[1]) {
-		//return ((E - E_Edge[0]) * (E - E_Edge[0]) / (2 * (E_Edge[1] - E_Edge[0]) * (E_Edge[2] - E_Edge[0]) * (E_Edge[3] - E_Edge[0])));
-		return f0;
+	if (std::get<0>(omega_edge) < omega <= std::get<1>(omega_edge)) {
+		double omega_r0 = omega - std::get<0>(omega_edge);
+		double omega_10 = std::get<1>(omega_edge) - std::get<0>(omega_edge);
+		double omega_20 = std::get<2>(omega_edge) - std::get<0>(omega_edge);
+		double omega_30 = std::get<3>(omega_edge) - std::get<0>(omega_edge);
+		return 3 * omega_r0 * omega_r0 / omega_10 / omega_20 / omega_30;
 	}
-	if (E <= E_Edge[2]) {
-		
-		//double E0 = (E_Edge[2] + E_Edge[3]) * (E_Edge[1] * E_Edge[0] - E * E);
-		//double E1 = (E_Edge[0] + E_Edge[1]) * (E * E - E_Edge[2] * E_Edge[3]);
-		//double E2 = 2 * (E_Edge[2] * E_Edge[3] - E_Edge[0] * E_Edge[1]) * E;
-		
-		//return (E0 + E1 + E2) / (2 * E20 * E30 * E21 * E31);
-		if (E_Edge[1] == E_Edge[2]) {
-			return 1 / (E_Edge[3] - E_Edge[0]) / 6;
-		}
-		if (E_Edge[0] == E_Edge[1]) {
-			double f0u = 2 * (E - E_Edge[1]) * (E_Edge[3] - E) - (E - E_Edge[1]) * (E - E_Edge[1]);
-			double f0d = E21 * E31 * E30;
-			double f1u = 2 * (E_Edge[2] - E) * (E - E_Edge[0]);
-			double f1d = E20 * E21 * E30;
-			return (f0u / f0d + f1u / f1d) / 6;
-		}
-		return f0 - f1;
+	if (std::get<1>(omega_edge) < omega <= std::get<2>(omega_edge)) {
+		double omega_1r = std::get<1>(omega_edge) - omega;
+		double omega_10 = std::get<1>(omega_edge) - std::get<0>(omega_edge);
+		double omega_20 = std::get<2>(omega_edge) - std::get<0>(omega_edge);
+		double omega_30 = std::get<3>(omega_edge) - std::get<0>(omega_edge);
+		double omega_21 = std::get<2>(omega_edge) - std::get<1>(omega_edge);
+		double omega_31 = std::get<3>(omega_edge) - std::get<1>(omega_edge);
+		double f = omega_1r * omega_1r * (omega_20 + omega_31) / omega_21 / omega_31;
+		return (3 * omega_10 - 6 * omega_1r - 3 * f) / omega_20 / omega_30;
 	}
-	if (E < E_Edge[3]) {
-		//return (E_Edge[3] - E) * (E_Edge[3] - E) / (2 * E30 * E31 * E32);
-		return f3;
+	if (std::get<2>(omega_edge) < omega < std::get<3>(omega_edge)) {
+		double omega_3r = std::get<3>(omega_edge) - omega;
+		double omega_30 = std::get<3>(omega_edge) - std::get<0>(omega_edge);
+		double omega_31 = std::get<3>(omega_edge) - std::get<1>(omega_edge);
+		double omega_32 = std::get<3>(omega_edge) - std::get<2>(omega_edge);
+		return 3 * omega_3r * omega_3r / omega_30 / omega_31 / omega_32;
 	}
 	else {
 		return 0;
 	}
 };
-*/
+
 /*
 double massconst::Si_angular_wavenumber(std::vector<double> Normalized_angular_wavenumber, int bandnum){
 	const double Norm_kr = std::sqrt(pow(Normalized_angular_wavenumber[0], 2) + pow(Normalized_angular_wavenumber[1], 2) + pow(Normalized_angular_wavenumber[2], 2));
