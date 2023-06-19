@@ -64,6 +64,7 @@ double massconst::k_volume(std::vector<double> E_Edge, double E) {
 	}
 };
 */
+/*
 double massconst::Si_angular_wavenumber(std::vector<double> Normalized_angular_wavenumber, int bandnum){
 	const double Norm_kr = std::sqrt(pow(Normalized_angular_wavenumber[0], 2) + pow(Normalized_angular_wavenumber[1], 2) + pow(Normalized_angular_wavenumber[2], 2));
 	const double k_rTA = 0.403;
@@ -84,6 +85,7 @@ double massconst::Si_angular_wavenumber(std::vector<double> Normalized_angular_w
 		}
 	}
 }
+*/
 
 void massconst::Si_DOS_table_construct() {
 	auto start = std::chrono::system_clock::now();
