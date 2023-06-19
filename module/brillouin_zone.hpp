@@ -28,7 +28,7 @@ namespace mc_sim{
 		 * @param std::tuple<int, int, int> メッシュ座標系でx, y, zの座標を指定するtuple
 		 * @return 角周波数
 		*/
-		virtual double angfreq_index(std::tuple<int, int, int>) = 0;
+		virtual double angfreq_index(std::tuple<int, int, int> const &) = 0;
 		
 		/*!
 		 * @brief 縦波か横波かを取得する関数

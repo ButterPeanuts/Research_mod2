@@ -20,16 +20,16 @@ namespace mc_sim{
 	*/
 	class brillouin_zone_funcobj : public brillouin_zone{
 		private:
-		int ndiv;
-		wave_direction direction;
-		wave_mode mode;
+		int const ndiv;
+		wave_direction const direction;
+		wave_mode const mode;
 		
 		/*!
 		 * @brief 波数空間上の規格座標から角周波数を計算する分散関係関数
 		 * @details 波数空間上の規格座標とは, \f$\Lambda\f$点を0, (正の)\f$X\f$点を1とする座標
 		 * @param std::tuple<double, double, double> 波数空間上の規格座標
 		*/
-		std::function<double(std::tuple<double, double, double>)>& disparsion_calc;
+		std::function<double(std::tuple<double, double, double> const &)> const & disparsion_calc;
 		
 		public:
 		/*!
@@ -39,7 +39,7 @@ namespace mc_sim{
 		 * @param wave_direction 振動方向
 		 * @param wave_mode 振動モード
 		*/
-		brillouin_zone_funcobj(int, std::function<double(std::tuple<double, double, double>)>&, wave_direction, wave_mode);
+		brillouin_zone_funcobj(int const &, std::function<double(std::tuple<double, double, double> const &)> const &, wave_direction const &, wave_mode const &);
 		
 		/*!
 		 * @brief 角波数空間におけるブリルアンゾーンの分割数\f$N_{div}\f$
@@ -52,7 +52,7 @@ namespace mc_sim{
 		 * @param std::tuple<int, int, int> メッシュ座標系でx, y, zの座標を指定するtuple
 		 * @return 角周波数
 		*/
-		double angfreq_index(std::tuple<int, int, int>);
+		double angfreq_index(std::tuple<int, int, int> const &);
 		
 		/*!
 		 * @brief 縦波か横波かを取得する関数

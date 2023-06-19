@@ -51,4 +51,13 @@ class physconst {
 		 * @param left_const 統計関数の計算結果にかける定数
 		*/
 		static double bedist2(double ang_freq, double temp, double left_const);
+		
+		/*!
+		 * @brief メッシュ座標(index)から規格化座標を返す
+		 * @details 0からndivの値を0から1に直す
+		 * @param std::tuple<int, int, int> メッシュ座標(index)
+		 * @param int 分割数(ndiv)
+		 * @return std::tuple<double, double, double> 規格化座標
+		*/
+		static std::tuple<double, double, double> indextostd(std::tuple<int, int, int> const &, int const);
 };
