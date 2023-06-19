@@ -31,7 +31,7 @@ double physconst::bedist2(double ang_freq, double temp, double left_const){
 }
 
 std::tuple<double, double, double> physconst::indextostd(std::tuple<int, int, int> const & index, int const ndiv){
-	return {static_cast<double>(std::get<0>(index)) / static_cast<double>(ndiv), static_cast<double>(std::get<0>(index)) / static_cast<double>(ndiv), static_cast<double>(std::get<0>(index)) / static_cast<double>(ndiv)};
+	return {static_cast<double>(std::get<0>(index)) / static_cast<double>(ndiv), static_cast<double>(std::get<1>(index)) / static_cast<double>(ndiv), static_cast<double>(std::get<2>(index)) / static_cast<double>(ndiv)};
 }
 
 
