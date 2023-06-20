@@ -2,6 +2,7 @@
 #include"physconst.hpp"
 #include"Integral.h"
 #include<curve.hpp>
+#include<brillouin_zone.hpp>
 
 #include<vector>
 #include<omp.h>
@@ -10,36 +11,41 @@
 #include<numbers>
 #include<future>
 #include<memory>
+#include<array>
+#include<limits>
+#include<algorithm>
+#include<utility>
+#include<future>
 
 
 
 //整列済みのE_Edgeに対して,k空間体積微分(rath(1973))を計算
-double massconst::k_volume(std::tuple<double, double, double, double> const & omega_edge, double omega){
-	if (omega <= std::get<0>(omega_edge)) {
+double massconst::k_volume(std::array<double, 4> const & omega_edge, double omega){
+	if (omega <= omega_edge[0]) {
 		return 0;
 	}
-	if (std::get<0>(omega_edge) < omega <= std::get<1>(omega_edge)) {
-		double omega_r0 = omega - std::get<0>(omega_edge);
-		double omega_10 = std::get<1>(omega_edge) - std::get<0>(omega_edge);
-		double omega_20 = std::get<2>(omega_edge) - std::get<0>(omega_edge);
-		double omega_30 = std::get<3>(omega_edge) - std::get<0>(omega_edge);
+	if (omega_edge[0] < omega <= omega_edge[1]) {
+		double omega_r0 = omega - omega_edge[0];
+		double omega_10 = omega_edge[1] - omega_edge[0];
+		double omega_20 = omega_edge[2] - omega_edge[0];
+		double omega_30 = omega_edge[3] - omega_edge[0];
 		return 3 * omega_r0 * omega_r0 / omega_10 / omega_20 / omega_30;
 	}
-	if (std::get<1>(omega_edge) < omega <= std::get<2>(omega_edge)) {
-		double omega_1r = std::get<1>(omega_edge) - omega;
-		double omega_10 = std::get<1>(omega_edge) - std::get<0>(omega_edge);
-		double omega_20 = std::get<2>(omega_edge) - std::get<0>(omega_edge);
-		double omega_30 = std::get<3>(omega_edge) - std::get<0>(omega_edge);
-		double omega_21 = std::get<2>(omega_edge) - std::get<1>(omega_edge);
-		double omega_31 = std::get<3>(omega_edge) - std::get<1>(omega_edge);
+	if (omega_edge[1] < omega <= omega_edge[2]) {
+		double omega_1r = omega_edge[1] - omega;
+		double omega_10 = omega_edge[1] - omega_edge[0];
+		double omega_20 = omega_edge[2] - omega_edge[0];
+		double omega_30 = omega_edge[3] - omega_edge[0];
+		double omega_21 = omega_edge[2] - omega_edge[1];
+		double omega_31 = omega_edge[3] - omega_edge[1];
 		double f = omega_1r * omega_1r * (omega_20 + omega_31) / omega_21 / omega_31;
 		return (3 * omega_10 - 6 * omega_1r - 3 * f) / omega_20 / omega_30;
 	}
-	if (std::get<2>(omega_edge) < omega < std::get<3>(omega_edge)) {
-		double omega_3r = std::get<3>(omega_edge) - omega;
-		double omega_30 = std::get<3>(omega_edge) - std::get<0>(omega_edge);
-		double omega_31 = std::get<3>(omega_edge) - std::get<1>(omega_edge);
-		double omega_32 = std::get<3>(omega_edge) - std::get<2>(omega_edge);
+	if (omega_edge[2] < omega < omega_edge[3]) {
+		double omega_3r = omega_edge[3] - omega;
+		double omega_30 = omega_edge[3] - omega_edge[0];
+		double omega_31 = omega_edge[3] - omega_edge[1];
+		double omega_32 = omega_edge[3] - omega_edge[2];
 		return 3 * omega_3r * omega_3r / omega_30 / omega_31 / omega_32;
 	}
 	else {
@@ -69,7 +75,7 @@ double massconst::Si_angular_wavenumber(std::vector<double> Normalized_angular_w
 	}
 }
 */
-
+/*
 void massconst::Si_DOS_table_construct() {
 	auto start = std::chrono::system_clock::now();
 	for (int n = 0; n <= 2; n += 2){
@@ -138,24 +144,44 @@ void massconst::Si_DOS_table_construct() {
 	auto time = end - start;
 	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(time).count();
 }
+*/
 
-double massconst::Si_DOS_table_construct_tetrahedron(double E, int n) {
-	double VS = 0;
-#pragma omp parallel for
-	for (int i2 = 0; i2 < massconst::Ndiv; i2++) {
-		for (int j2 = 0; j2 < massconst::Ndiv; j2++) {
-			for (int k2 = 0; k2 < massconst::Ndiv; k2++) {
-				std::vector<double> E_Edge;
+curve massconst::doscurve_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_ptr<mc_sim::logger>& logger){
+	std::vector<std::pair<double, double>> pscurve;
+	pscurve.emplace_back(0.0, 0.0);
+	for (double omega = 1.0; omega < std::pow(10.0, 14.0); omega *= 1.001){
+		pscurve.emplace_back(omega, 0.0);
+	}
+	
+	int ndiv = bz.ndiv_getter();
+
+	std::array<double, 4> omega_edge;
+	std::vector<future<void>> futures;
+	for (int i2 = 0; i2 < ndiv; i2++) {
+		for (int j2 = 0; j2 < ndiv; j2++) {
+			for (int k2 = 0; k2 < ndiv; k2++) {
 				//立方体がブリルアンゾーン外の場合
-				if (i2 + j2 + k2 + 3 >= massconst::Ndiv * 3 / 2 + 3)continue;
+				if (i2 + j2 + k2 + 3 >= ndiv * 3 / 2 + 3)continue;
 				//type1
-				E_Edge.clear();
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2 + 1][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2][k2 + 1][n]);
-				std::sort(E_Edge.begin(), E_Edge.end());
-				VS += massconst::k_volume(E_Edge, E);
+				omega_edge[0] = bz.angfreq_index({i2, j2, k2});
+				omega_edge[1] = bz.angfreq_index({i2 + 1, j2, k2});
+				omega_edge[2] = bz.angfreq_index({i2, j2 + 1, k2});
+				omega_edge[3] = bz.angfreq_index({i2, j2, k2 + 1});
+				//ここから関数化?
+				//pscurve, omega_edgeを渡し, futuresをキャプチャーする?
+				std::sort(omega_edge.begin(), omega_edge.end());
+				auto start = std::upper_bound(pscurve.begin(), pscurve.end(), std::make_pair(omega_edge[0], std::numeric_limits<double>::infinity()));
+				auto stop = std::upper_bound(pscurve.begin(), pscurve.end(), std::make_pair(omega_edge[3], std::numeric_limits<double>::infinity()));
+				std::for_each(start, stop, [&omega_edge, &futures](auto s){
+					futures.push_back(std::async(std::launch::async, [&omega_edge, &s](){
+						s.second += massconst::k_volume(omega_edge, s.first);
+					}));
+				});
+				for (future<void>& f: futures){
+					f.get();
+				}
+				futures.clear();
+				
 				//type1のみブリルアンゾーン内の場合
 				if (i2 + j2 + k2 + 3 >= massconst::Ndiv * 3 / 2 + 2)continue;
 				//type2
@@ -202,8 +228,7 @@ double massconst::Si_DOS_table_construct_tetrahedron(double E, int n) {
 			}
 		}
 	}
-#pragma omp barrier
-	return VS;
+	return curve;
 }
 
 /*

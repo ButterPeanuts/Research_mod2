@@ -14,6 +14,7 @@
 #include<curve.hpp>
 #include<band.hpp>
 #include<logger.hpp>
+#include<brillouin_zone.hpp>
 
 /*!
  * @brief 物理定数, 物理関数計算に関するヘルパー
@@ -28,7 +29,7 @@ class massconst {
 		 * @param double 求めたい面の角周波数
 		 * @return 四面体内規格化体積
 		*/
-		static double k_volume(std::tuple<double, double, double, double> const &, double omega);
+		static double k_volume(std::array<double, 4>const &, double omega);
 		
 	public:
 		//格子定数 どこに使われてるんだろう
@@ -42,9 +43,13 @@ class massconst {
 		//状態密度テーブル構築他,シミュに前提として要求される(より良い実装求む)
 		//static void Si_dispersion_table_construct();
 		
-		//状態密度テーブルを構築する
-		//シミュに前提として要求される(より良い実装求む)
-		//static void Si_DOS_table_construct();
+		/*!
+		 * @brief 分散関係からdosのcurveを四面体法で構築する
+		 * @param mc_sim::brillouin_zone const & 分散関係
+		 * @param std::shared_ptr<mc_sim::logger>& curveに入れるロガー
+		 * @return curve dosの関数curve
+		*/
+		static curve doscurve_tetrahedron(mc_sim::brillouin_zone&, std::shared_ptr<mc_sim::logger>&);
 		//static double Si_DOS_table_construct_tetrahedron(double E, int n);
 		
 		//比熱テーブルを構築する
