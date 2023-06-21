@@ -10,6 +10,8 @@ project(mc_sim)
 #---設定
 #compile_commands.jsonを生成する
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+add_compile_options("$<$<CONFIG:Debug>:-g>")
+add_compile_options("$<$<CONFIG:Debug>:-O0>")
 
 #Debug/Releaseのどちらのビルドかコンパイラにわたす
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DBUILD_TYPE=\\\"Debug\\\"")
@@ -111,7 +113,7 @@ target_link_libraries(simulation PRIVATE mcparticle)
 
 
 #brillouin_zone_funcobj
-add_library(brillouin_zone_funcobj STATIC module/brillouin_zone_funcobj.hpp)
+add_library(brillouin_zone_funcobj STATIC module/brillouin_zone_funcobj.cpp)
 
 target_include_directories(brillouin_zone_funcobj PUBLIC module)
 target_compile_options(brillouin_zone_funcobj PRIVATE -MT)

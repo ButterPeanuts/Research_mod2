@@ -8,12 +8,17 @@
 #include<modeenum.hpp>
 #include<brillouin_zone_funcobj.hpp>
 #include<brillouin_zone.hpp>
+
+#include<iostream>
 using namespace mc_sim;
 
 int main(){
+	std::cout << "That is sign" << std::endl;
 	logger_obj logobj = logger_obj("calculator", "log/calculator.log");
 	std::shared_ptr<logger> curveslogger(logobj.copy_samesink("curves"));
 	
+	logobj.info("We start calculating dos.");
+	std::cout << "That is sign" << std::endl;
 	int ndiv = 48;
 	brillouin_zone_funcobj bz_la(ndiv, massconst::si_angfreq_100_la, wave_direction::longitudinal, wave_mode::acoustic);
 	brillouin_zone_funcobj bz_ta(ndiv, massconst::si_angfreq_100_ta, wave_direction::transverse, wave_mode::acoustic);
@@ -21,6 +26,9 @@ int main(){
 	curve dos_ta = massconst::doscurve_tetrahedron(bz_ta, curveslogger);
 	dos_la.file_output("data/Si_DOS_LA_48neo.txt");
 	dos_ta.file_output("data/Si_DOS_TA_48neo.txt");
+	std::cout << dos_la.itpl_getter(1e+10) << std::endl;
+	logobj.info("Dos is calculated!");
+	std::cout << "That is sign" << std::endl;
 	
 	//curve dos_la = curve(curveslogger, "data/Si_DOS_LA_48t.txt");
 	curve gv_la = curve(curveslogger, "data/Si_gvelocity_LA.txt");
