@@ -24,14 +24,14 @@ double massconst::k_volume(std::array<double, 4> const & omega_edge, double omeg
 	if (omega <= omega_edge[0]) {
 		return 0;
 	}
-	if (omega_edge[0] < omega <= omega_edge[1]) {
+	if (omega_edge[0] < omega and omega <= omega_edge[1]) {
 		double omega_r0 = omega - omega_edge[0];
 		double omega_10 = omega_edge[1] - omega_edge[0];
 		double omega_20 = omega_edge[2] - omega_edge[0];
 		double omega_30 = omega_edge[3] - omega_edge[0];
 		return 3 * omega_r0 * omega_r0 / omega_10 / omega_20 / omega_30;
 	}
-	if (omega_edge[1] < omega <= omega_edge[2]) {
+	if (omega_edge[1] < omega and omega <= omega_edge[2]) {
 		double omega_1r = omega_edge[1] - omega;
 		double omega_10 = omega_edge[1] - omega_edge[0];
 		double omega_20 = omega_edge[2] - omega_edge[0];
@@ -41,7 +41,7 @@ double massconst::k_volume(std::array<double, 4> const & omega_edge, double omeg
 		double f = omega_1r * omega_1r * (omega_20 + omega_31) / omega_21 / omega_31;
 		return (3 * omega_10 - 6 * omega_1r - 3 * f) / omega_20 / omega_30;
 	}
-	if (omega_edge[2] < omega < omega_edge[3]) {
+	if (omega_edge[2] < omega and omega < omega_edge[3]) {
 		double omega_3r = omega_edge[3] - omega;
 		double omega_30 = omega_edge[3] - omega_edge[0];
 		double omega_31 = omega_edge[3] - omega_edge[1];
