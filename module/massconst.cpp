@@ -56,8 +56,8 @@ double massconst::k_volume(std::array<double, 4> const & omega_edge, double omeg
 double massconst::si_angfreq_100_la(const std::tuple<double, double, double>& k_std){
 	const double norm_k = std::sqrt(std::pow(std::get<0>(k_std), 2) + std::pow(std::get<1>(k_std), 2) + std::pow(std::get<2>(k_std), 2));
 	constexpr double k_border_la = 0.524;
-	constexpr double tilt1 = 8480.0 * 2.0 * physconst::pi / massconst::si_lattice_constant;
-	constexpr double tilt2 = 4240.0 * 2.0 * physconst::pi / massconst::si_lattice_constant;
+	constexpr double tilt1 = 8480.0 * 2.0 * std::numbers::pi / massconst::si_lattice_constant;
+	constexpr double tilt2 = 4240.0 * 2.0 * std::numbers::pi / massconst::si_lattice_constant;
 	if (norm_k <= k_border_la) {
 		return tilt1 * norm_k;
 	}
@@ -72,12 +72,12 @@ double massconst::si_angfreq_100_la(const std::tuple<double, double, double>& k_
 double massconst::si_angfreq_100_ta(const std::tuple<double, double, double>& k_std){
 	const double norm_k = std::sqrt(std::pow(std::get<0>(k_std), 2) + std::pow(std::get<1>(k_std), 2) + std::pow(std::get<2>(k_std), 2));
 	constexpr double k_border_ta = 0.403;
-	constexpr double tilt = 5860.0 * 2.0 * physconst::pi / massconst::si_lattice_constant;
+	constexpr double tilt = 5860.0 * 2.0 * std::numbers::pi / massconst::si_lattice_constant;
 	if (norm_k <= k_border_ta) {
-		return tilt1 * norm_k;
+		return tilt * norm_k;
 	}
 	else {
-		constexpr double top = tilt1 * k_border_ta;
+		constexpr double top = tilt * k_border_ta;
 		return top;
 	}
 }
