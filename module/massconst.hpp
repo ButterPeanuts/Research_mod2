@@ -32,8 +32,6 @@ class massconst {
 		static double k_volume(std::array<double, 4>const &, double omega);
 		
 	public:
-		//格子定数 どこに使われてるんだろう
-		//static const double Si_lattice_constant;
 		/*! 比熱などを計算するときに考慮する最大の温度 */
 		static inline const int heatcaps_tempmax = 1200;
 		
@@ -50,10 +48,13 @@ class massconst {
 		 * @return curve dosの関数curve
 		*/
 		static curve doscurve_tetrahedron(mc_sim::brillouin_zone&, std::shared_ptr<mc_sim::logger>&);
-		//static double Si_DOS_table_construct_tetrahedron(double E, int n);
 		
-		//比熱テーブルを構築する
-		//static void Si_heatcap_table_construct();
+		/*!
+		 * @brief band情報から比熱curveを計算する
+		 * @param std::vector<std::shared_ptr<band>> band情報たち
+		 * @param std::shared_ptr<mc_sim::logger>& curveに入れるlogger
+		 * @return curve 比熱の関数curve
+		*/
 		static curve heatcap_curve_construct(std::vector<std::shared_ptr<band>>, std::shared_ptr<mc_sim::logger>&);
 		
 		/* static double Si_group_velocity(double angular_frequency, int bandnum); */

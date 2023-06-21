@@ -75,186 +75,117 @@ double massconst::Si_angular_wavenumber(std::vector<double> Normalized_angular_w
 	}
 }
 */
-/*
-void massconst::Si_DOS_table_construct() {
-	auto start = std::chrono::system_clock::now();
-	for (int n = 0; n <= 2; n += 2){
-		for (int i = 0; i <= massconst::Ndiv; i++) {
-			for (int j = 0; j <= i; j++) {
-				for (int k = 0; k <= j; k++) {
-					//ijkで登録する各周波数massconst::Si_dispersion[i][j][k][n]を決定 そこからエネルギーを決定
-					if (n == 0) {
-						if (std::find_if(massconst::Si_DOS_TA.begin(), massconst::Si_DOS_TA.end(),
-						[&](const auto& r) {
-							return r[0] == massconst::Si_dispersion[i][j][k][n];
-						}) != massconst::Si_DOS_TA.end()) {
-							continue;
-						}
-					}
-					else {
-						if (std::find_if(massconst::Si_DOS_LA.begin(), massconst::Si_DOS_LA.end(),
-						[&](const auto& r) {
-							return r[0] == massconst::Si_dispersion[i][j][k][n];
-						}) != massconst::Si_DOS_LA.end()) {
-							continue;
-						}
-					}
-					double E = massconst::Si_dispersion[i][j][k][n] * physconst::dirac;
-					double VS = massconst::Si_DOS_table_construct_tetrahedron(E, n);
-					std::vector<double> DOS;
-					DOS.push_back(massconst::Si_dispersion[i][j][k][n]);
-					DOS.push_back(VS * 16 / (pow(massconst::Ndiv, 3) * pow(massconst::Si_lattice_constant, 3)));
-					//std::cout << "(" << n << ")" << DOS[0] << " , " << DOS[1] << std::endl;
-					if (n == 0) {
-						massconst::Si_DOS_TA.push_back(DOS);
-					}
-					else {
-						massconst::Si_DOS_LA.push_back(DOS);
-					}
-				}
-			}
-		}
-	}
-	std::sort(massconst::Si_DOS_TA.begin(), massconst::Si_DOS_TA.end(), [](const std::vector<double>& alpha, const std::vector<double>& beta) {return alpha[0] < beta[0]; });
-	std::sort(massconst::Si_DOS_LA.begin(), massconst::Si_DOS_LA.end(), [](const std::vector<double>& alpha, const std::vector<double>& beta) {return alpha[0] < beta[0]; });
-	for (int n = 0; n <= 2; n += 2) {
-		double capE = (n == 0 ? 3.0e+13 : 1.0e+14);
-		for (double tempE = 1.0e+10; tempE <= capE; (tempE >= 1.0e+13 ? tempE += 1.0e+12 : tempE *= 1.1)) {
-			double VS = massconst::Si_DOS_table_construct_tetrahedron(tempE*physconst::dirac, n);
-			std::vector<double> DOS;
-			DOS.push_back(tempE);
-			//鎌倉(2003)の方式 正しくない?
-			//DOS.push_back(VS * 16 / (pow(massconst::Ndiv, 3) * pow(massconst::Si_lattice_constant, 3)));
-			//rath(1974)の方式 正しいかも
-			DOS.push_back(VS / 6 / (pow(massconst::Ndiv, 3) * pow(2 * std::numbers::pi, 3)));
-			//std::cout << "(" << n << ")" << DOS[0] << " , " << DOS[1] << std::endl;
-			if (n == 0) {
-				massconst::Si_DOS_TA.push_back(DOS);
-			}
-			else {
-				massconst::Si_DOS_LA.push_back(DOS);
-			}
-		}
-	}
 
-	std::sort(massconst::Si_DOS_TA.begin(), massconst::Si_DOS_TA.end(), [](const std::vector<double>& alpha, const std::vector<double>& beta) {return alpha[0] < beta[0]; });
-	std::sort(massconst::Si_DOS_LA.begin(), massconst::Si_DOS_LA.end(), [](const std::vector<double>& alpha, const std::vector<double>& beta) {return alpha[0] < beta[0]; });
-
-	auto end = std::chrono::system_clock::now();
-	auto time = end - start;
-	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(time).count();
-}
-*/
-
+//改修完了?
 curve massconst::doscurve_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_ptr<mc_sim::logger>& logger){
+	//仮のカーブ 外部から書き込み可能にしたいためこの形式
 	std::vector<std::pair<double, double>> pscurve;
+	//角周波数0を最初に入れておく
 	pscurve.emplace_back(0.0, 0.0);
-	for (double omega = 1.0; omega < std::pow(10.0, 14.0); omega *= 1.001){
+	//あとは初項1, 公比1.001[rad/s]の角周波数をカーブに入れる
+	double omega_a = 1.0;
+	double omega_r = 1.001;
+	double omega_max = std::pow(10.0, 14.0);
+	for (double omega = omega_a; omega < omega_max; omega *= omega_r){
 		pscurve.emplace_back(omega, 0.0);
 	}
 	
+	//ndivを事前に取得しておく
 	int ndiv = bz.ndiv_getter();
-
+	
+	//四面体の頂点の各周波数を入れるarray
 	std::array<double, 4> omega_edge;
+	//並列処理用
 	std::vector<future<void>> futures;
+	
+	//積分処理の呼び出し, 加算を行う
+	auto dos_integration = [&pscurve, &omega_edge, &futures]() -> void{
+		//edgeをソート
+		std::sort(omega_edge.begin(), omega_edge.end());
+		//dosの変化が起こる角周波数の領域を探索
+		auto start = std::upper_bound(pscurve.begin(), pscurve.end(), std::make_pair(omega_edge[0], std::numeric_limits<double>::infinity()));
+		auto stop = std::upper_bound(pscurve.begin(), pscurve.end(), std::make_pair(omega_edge[3], std::numeric_limits<double>::infinity()));
+		//領域内の数値に対して, 積分値を求め値を更新するfutureを作る
+		std::for_each(start, stop, [&omega_edge, &futures](auto s){
+			futures.push_back(std::async(std::launch::async, [&omega_edge, &s](){
+				s.second += massconst::k_volume(omega_edge, s.first);
+			}));
+		});
+		//完了を待つ
+		for (future<void>& f: futures){
+			f.get();
+		}
+		//futureを消す
+		futures.clear();
+		return;
+	};
 	for (int i2 = 0; i2 < ndiv; i2++) {
 		for (int j2 = 0; j2 < ndiv; j2++) {
 			for (int k2 = 0; k2 < ndiv; k2++) {
 				//立方体がブリルアンゾーン外の場合
 				if (i2 + j2 + k2 + 3 >= ndiv * 3 / 2 + 3)continue;
 				//type1
-				omega_edge[0] = bz.angfreq_index({i2, j2, k2});
-				omega_edge[1] = bz.angfreq_index({i2 + 1, j2, k2});
-				omega_edge[2] = bz.angfreq_index({i2, j2 + 1, k2});
-				omega_edge[3] = bz.angfreq_index({i2, j2, k2 + 1});
-				//ここから関数化?
-				//pscurve, omega_edgeを渡し, futuresをキャプチャーする?
-				std::sort(omega_edge.begin(), omega_edge.end());
-				auto start = std::upper_bound(pscurve.begin(), pscurve.end(), std::make_pair(omega_edge[0], std::numeric_limits<double>::infinity()));
-				auto stop = std::upper_bound(pscurve.begin(), pscurve.end(), std::make_pair(omega_edge[3], std::numeric_limits<double>::infinity()));
-				std::for_each(start, stop, [&omega_edge, &futures](auto s){
-					futures.push_back(std::async(std::launch::async, [&omega_edge, &s](){
-						s.second += massconst::k_volume(omega_edge, s.first);
-					}));
-				});
-				for (future<void>& f: futures){
-					f.get();
+				{
+					omega_edge[0] = bz.angfreq_index({i2, j2, k2});
+					omega_edge[1] = bz.angfreq_index({i2 + 1, j2, k2});
+					omega_edge[2] = bz.angfreq_index({i2, j2 + 1, k2});
+					omega_edge[3] = bz.angfreq_index({i2, j2, k2 + 1});
+					dos_integration();
 				}
-				futures.clear();
 				
 				//type1のみブリルアンゾーン内の場合
-				if (i2 + j2 + k2 + 3 >= massconst::Ndiv * 3 / 2 + 2)continue;
+				if (i2 + j2 + k2 + 3 >= ndiv * 3 / 2 + 2)continue;
 				//type2
-				E_Edge.clear();
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2][k2 + 1][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2 + 1][k2 + 1][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2][k2 + 1][n]);
-				std::sort(E_Edge.begin(), E_Edge.end());
-				VS += massconst::k_volume(E_Edge, E);
+				{
+					omega_edge[0] = bz.angfreq_index({i2, j2, k2 + 1});
+					omega_edge[1] = bz.angfreq_index({i2 + 1, j2, k2});
+					omega_edge[2] = bz.angfreq_index({i2, j2 + 1, k2 + 1});
+					omega_edge[3] = bz.angfreq_index({i2 + 1, j2, k2 + 1});
+					dos_integration();
+				}
 				//type3
-				E_Edge.clear();
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2][k2 + 1][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2 + 1][k2 + 1][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2 + 1][k2][n]);
-				std::sort(E_Edge.begin(), E_Edge.end());
-				VS += massconst::k_volume(E_Edge, E);
+				{
+					omega_edge[0] = bz.angfreq_index({i2, j2, k2 + 1});
+					omega_edge[1] = bz.angfreq_index({i2 + 1, j2, k2});
+					omega_edge[2] = bz.angfreq_index({i2, j2 + 1, k2 + 1});
+					omega_edge[3] = bz.angfreq_index({i2, j2 + 1, k2});
+					dos_integration();
+				}
 				//type5
-				E_Edge.clear();
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2 + 1][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2 + 1][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2 + 1][k2 + 1][n]);
-				std::sort(E_Edge.begin(), E_Edge.end());
-				VS += massconst::k_volume(E_Edge, E);
+				{
+					omega_edge[0] = bz.angfreq_index({i2 + 1, j2 + 1, k2});
+					omega_edge[1] = bz.angfreq_index({i2 + 1, j2, k2});
+					omega_edge[2] = bz.angfreq_index({i2, j2 + 1, k2});
+					omega_edge[3] = bz.angfreq_index({i2, j2 + 1, k2 + 1});
+					dos_integration();
+				}
 				//type6
-				E_Edge.clear();
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2 + 1][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2][k2 + 1][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2 + 1][k2 + 1][n]);
-				std::sort(E_Edge.begin(), E_Edge.end());
-				VS += massconst::k_volume(E_Edge, E);
+				{
+					omega_edge[0] = bz.angfreq_index({i2 + 1, j2 + 1, k2});
+					omega_edge[1] = bz.angfreq_index({i2 + 1, j2, k2});
+					omega_edge[2] = bz.angfreq_index({i2 + 1, j2, k2 + 1});
+					omega_edge[3] = bz.angfreq_index({i2, j2 + 1, k2 + 1});
+					dos_integration();
+				}
 				//type4のみブリルアンゾーン外の場合
-				if (i2 + j2 + k2 + 3 >= massconst::Ndiv * 3 / 2 + 1)continue;
-				E_Edge.clear();
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2 + 1][k2][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2 + 1][k2 + 1][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2 + 1][j2][k2 + 1][n]);
-				E_Edge.push_back(physconst::dirac * massconst::Si_dispersion[i2][j2 + 1][k2 + 1][n]);
-				std::sort(E_Edge.begin(), E_Edge.end());
-				VS += massconst::k_volume(E_Edge, E);
-			}
-		}
-	}
-	return curve;
-}
-
-/*
-void massconst::Si_dispersion_table_construct() {
-	massconst::Si_dispersion.assign(massconst::Ndiv + 1, std::vector<std::vector<std::vector<double>>>(massconst::Ndiv + 1, std::vector<std::vector<double>>(massconst::Ndiv + 1, std::vector<double>(3, 0))));
-	//int step = 0;
-	auto start = std::chrono::system_clock::now();
-	for (int i = 0; i <= massconst::Ndiv; i++) {
-		for (int j = 0; j <= massconst::Ndiv; j++) {
-#pragma omp parallel for
-			for (int k = 0; k <= massconst::Ndiv; k++) {
-				for (int band = 0; band < 3; band++) {
-					std::vector<double> kr = { (double)i / (double)massconst::Ndiv,(double)j / (double)massconst::Ndiv,(double)k / (double)(massconst::Ndiv) };
-					massconst::Si_dispersion[i][j][k][band] = Si_angular_wavenumber(kr, band);
-					//std::cout << step++ << std::endl;
-					//std::cout << i << "," << j << "," << k << "(" << band << ") : " << massconst::Si_dispersion[i][j][k][band] << std::endl;
+				if (i2 + j2 + k2 + 3 >= ndiv * 3 / 2 + 1)continue;
+				{
+					omega_edge[0] = bz.angfreq_index({i2 + 1, j2 + 1, k2});
+					omega_edge[1] = bz.angfreq_index({i2 + 1, j2 + 1, k2 + 1});
+					omega_edge[2] = bz.angfreq_index({i2 + 1, j2, k2 + 1});
+					omega_edge[3] = bz.angfreq_index({i2, j2 + 1, k2 + 1});
+					dos_integration();
 				}
 			}
-#pragma omp barrier
 		}
 	}
-	auto end = std::chrono::system_clock::now();
-	auto time = end - start;
-	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(time).count() << std::endl;
+	
+	curve dos(logger);
+	for (auto i: pscurve){
+		dos.append(i.first, i.second);
+	}
+	return dos;
 }
-*/
 
 //改修完了?
 curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> banddata, std::shared_ptr<mc_sim::logger>& newlogger) {
