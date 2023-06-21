@@ -6,19 +6,29 @@
 #include<curve.hpp>
 #include<scatconst.hpp>
 #include<modeenum.hpp>
+#include<brillouin_zone_funcobj.hpp>
+#include<brillouin_zone.hpp>
 using namespace mc_sim;
 
 int main(){
 	logger_obj logobj = logger_obj("calculator", "log/calculator.log");
-	
 	std::shared_ptr<logger> curveslogger(logobj.copy_samesink("curves"));
-	curve dos_la = curve(curveslogger, "data/Si_DOS_LA_48t.txt");
+	
+	int ndiv = 48;
+	brillouin_zone_funcobj bz_la(ndiv, massconst::si_angfreq_100_la, wave_direction::longitudinal, wave_mode::acoustic);
+	brillouin_zone_funcobj bz_ta(ndiv, massconst::si_angfreq_100_ta, wave_direction::transverse, wave_mode::acoustic);
+	curve dos_la = massconst::doscurve_tetrahedron(bz_la, curveslogger);
+	curve dos_ta = massconst::doscurve_tetrahedron(bz_ta, curveslogger);
+	dos_la.file_output("data/Si_DOS_LA_48neo.txt");
+	dos_ta.file_output("data/Si_DOS_TA_48neo.txt");
+	
+	//curve dos_la = curve(curveslogger, "data/Si_DOS_LA_48t.txt");
 	curve gv_la = curve(curveslogger, "data/Si_gvelocity_LA.txt");
 	scatconst scatconst_la = scatconst(curveslogger, "data/Si_scatconst_LA.txt");
 	std::shared_ptr<logger> logger_la = logobj.copy_samesink("band_LA");
 	auto band_la = std::make_shared<band_obj>(band_obj(logger_la, dos_la, gv_la, wave_direction::longitudinal, wave_mode::acoustic, scatconst_la));
 	
-	curve dos_ta = curve(curveslogger, "data/Si_DOS_TA_48t.txt");
+	//curve dos_ta = curve(curveslogger, "data/Si_DOS_TA_48t.txt");
 	curve gv_ta = curve(curveslogger, "data/Si_gvelocity_TA.txt");
 	scatconst scatconst_ta = scatconst(curveslogger, "data/Si_scatconst_TA.txt");
 	std::shared_ptr<logger> logger_ta = logobj.copy_samesink("band_TA");
