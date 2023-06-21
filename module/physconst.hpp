@@ -19,11 +19,9 @@ class physconst {
 		physconst();
 	public:
 		/*! ディラック定数 \f$ \hbar = \frac{h}{2\pi} [J\cdot s]\f$*/
-		static inline const double dirac = 1.054571817e-34;
-		/*! 円周率 */
-		static inline const double pi = 3.14159265358979323846;
+		constexpr static inline double dirac = 1.054571817e-34;
 		/*! ボルツマン定数 \f$ k_B [J/K] \f$*/
-		static inline const double boltzmann = 1.380649e-23;
+		constexpr static inline double boltzmann = 1.380649e-23;
 		/*! 一様乱数発生器 */
 		static std::mt19937_64 mtrand;
 		/*!
