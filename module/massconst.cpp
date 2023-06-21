@@ -53,28 +53,34 @@ double massconst::k_volume(std::array<double, 4> const & omega_edge, double omeg
 	}
 };
 
-/*
-double massconst::Si_angular_wavenumber(std::vector<double> Normalized_angular_wavenumber, int bandnum){
-	const double Norm_kr = std::sqrt(pow(Normalized_angular_wavenumber[0], 2) + pow(Normalized_angular_wavenumber[1], 2) + pow(Normalized_angular_wavenumber[2], 2));
-	const double k_rTA = 0.403;
-	const double k_rLA = 0.524;
-	if (bandnum == 2) {
-		if (Norm_kr < k_rLA) {
-			return ((double)8480 * 2 * physconst::pi * Norm_kr / massconst::Si_lattice_constant);
-		}
-		else {
-			return ((double)8480 * 2 * physconst::pi * k_rLA / massconst::Si_lattice_constant) + ((double)4240 * 2 * physconst::pi * (Norm_kr - k_rLA) / massconst::Si_lattice_constant);
-		}
-	}else {
-		if (Norm_kr < k_rTA) {
-			return ((double)5860 * 2 * physconst::pi * Norm_kr / massconst::Si_lattice_constant);
-		}
-		else {
-			return ((double)5860 * 2 * physconst::pi * k_rTA / massconst::Si_lattice_constant);
-		}
+double massconst::si_angfreq_100_la(const std::tuple<double, double, double>& k_std){
+	const double norm_k = std::sqrt(std::pow(std::get<0>(k_std), 2) + std::pow(std::get<1>(k_std), 2) + std::pow(std::get<2>(k_std), 2));
+	constexpr double k_border_la = 0.524;
+	constexpr double tilt1 = 8480.0 * 2.0 * physconst::pi / massconst::si_lattice_constant;
+	constexpr double tilt2 = 4240.0 * 2.0 * physconst::pi / massconst::si_lattice_constant;
+	if (norm_k <= k_border_la) {
+		return tilt1 * norm_k;
+	}
+	else if(norm_k <= 1.0) {
+		return tilt1 * k_border_la + tilt2 * (norm_k - k_border_la);
+	} else {
+		constexpr double top = tilt1 * k_border_la + tilt2 * (1.0 - k_border_la);
+		return top;
 	}
 }
-*/
+
+double massconst::si_angfreq_100_ta(const std::tuple<double, double, double>& k_std){
+	const double norm_k = std::sqrt(std::pow(std::get<0>(k_std), 2) + std::pow(std::get<1>(k_std), 2) + std::pow(std::get<2>(k_std), 2));
+	constexpr double k_border_ta = 0.403;
+	constexpr double tilt = 5860.0 * 2.0 * physconst::pi / massconst::si_lattice_constant;
+	if (norm_k <= k_border_ta) {
+		return tilt1 * norm_k;
+	}
+	else {
+		constexpr double top = tilt1 * k_border_ta;
+		return top;
+	}
+}
 
 //改修完了?
 curve massconst::doscurve_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_ptr<mc_sim::logger>& logger){

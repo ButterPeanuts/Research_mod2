@@ -31,11 +31,25 @@ class massconst {
 		*/
 		static double k_volume(std::array<double, 4>const &, double omega);
 		
+		/*! シリコンの格子定数 */
+		constexpr static inline double si_lattice_constant = 5.431e-10;
 	public:
 		/*! 比熱などを計算するときに考慮する最大の温度 */
 		static inline const int heatcaps_tempmax = 1200;
 		
-		//static double Si_angular_wavenumber(std::vector<double> Normalized_angular_wavenumber, int bandnum);
+		/*!
+		 * @brief 波数空間上の規格座標からLAバンドでの角周波数を<1, 0, 0>モデルで求める関数
+		 * @param std::tuple<double, double, double>& 波数空間上の規格座標
+		 * @return LAバンド, <1, 0, 0>モデルでの角周波数
+		*/
+		static double si_angfreq_100_la(const std::tuple<double, double, double>&);
+		
+		/*!
+		 * @brief 波数空間上の規格座標からTAバンドでの角周波数を<1, 0, 0>モデルで求める関数
+		 * @param std::tuple<double, double, double>& 波数空間上の規格座標
+		 * @return TAバンド, <1, 0, 0>モデルでの角周波数
+		*/
+		static double si_angfreq_100_ta(const std::tuple<double, double, double>&);
 		
 		//分散関係テーブルを構築する
 		//状態密度テーブル構築他,シミュに前提として要求される(より良い実装求む)
