@@ -110,6 +110,16 @@ target_compile_features(simulation PRIVATE cxx_std_20)
 target_link_libraries(simulation PRIVATE mcparticle)
 
 
+#brillouin_zone_funcobj
+add_library(brillouin_zone_funcobj STATIC module/brillouin_zone_funcobj.hpp)
+
+target_include_directories(brillouin_zone_funcobj PUBLIC module)
+target_compile_options(brillouin_zone_funcobj PRIVATE -MT)
+target_compile_options(brillouin_zone_funcobj PRIVATE -Wall)
+target_compile_features(brillouin_zone_funcobj PRIVATE cxx_std_20)
+
+target_link_libraries(brillouin_zone_funcobj PRIVATE physconst)
+
 
 
 #メイン
@@ -131,6 +141,7 @@ target_link_libraries(calculator PRIVATE band_obj)
 target_link_libraries(calculator PRIVATE curve)
 target_link_libraries(calculator PRIVATE spdlog::spdlog)
 target_link_libraries(calculator PRIVATE scatconst)
+target_link_libraries(calculator PRIVATE brillouin_zone_funcobj)
 
 target_include_directories(calculator PRIVATE ${spdlog_DIR})
 
