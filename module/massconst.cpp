@@ -187,8 +187,10 @@ curve massconst::doscurve_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_pt
 	}
 	
 	curve dos(logger);
+	const double intconst = 1 / (physconst::dirac * 3.0 * ndiv * ndiv * ndiv);
 	for (auto i: pscurve){
-		dos.append(i.first, i.second);
+		
+		dos.append(i.first, i.second * intconst);
 	}
 	return dos;
 }
