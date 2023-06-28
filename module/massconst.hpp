@@ -71,5 +71,13 @@ class massconst {
 		*/
 		static curve heatcap_curve_construct(std::vector<std::shared_ptr<band>>, std::shared_ptr<mc_sim::logger>&);
 		
+		/*!
+		 * @brief band情報から温度とエネルギー体積密度の相互変換を行えるcurveを計算する
+		 * @param std::vector<std::shared_ptr<band>> band情報たち
+		 * @param std::shared_ptr<mc_sim::logger>& curveに入れるlogger
+		 * @return std::pair<curve, curve> 温度からエネルギー体積密度を得るcurveとエネルギー体積密度から温度を得るcurveのpair
+		*/
+		static std::pair<curve, curve> internal_energy_construct(std::vector<std::shared_ptr<band>>&, std::shared_ptr<mc_sim::logger>&);
+		
 		/* static double Si_group_velocity(double angular_frequency, int bandnum); */
 };

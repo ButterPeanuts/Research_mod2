@@ -249,6 +249,64 @@ curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> band
 	return heatcap;
 }
 
+std::pair<curve, curve> massconst::internal_energy_construct(std::vector<std::shared_ptr<band>>& banddata, std::shared_ptr<mc_sim::logger>& newlogger) {
+	//内部エネルギーの計算
+	curve internal_energy(newlogger);
+	curve temperature(newlogger);
+	internal_energy.append(0.0, 0.0);
+	temperature.append(0.0, 0.0);
+	
+	//被積分関数
+	auto calculator = [](double omega, band& target_band, double t){
+		if (t == 0){
+			return 0.0;
+		}
+		if (omega == 0){
+			//基本的に0.0
+			return target_band.dos_getter(0.0) / physconst::boltzmann / t;
+		};
+		
+		constexpr double diracpark = physconst::dirac / physconst::boltzmann;
+		//エネルギー比, これが60を超えたあたりがボルツマン近似域
+		//700を超えたあたりがdouble型範囲超過粋
+		//0を超えず, 760ぐらいまではある
+		double energy_ratio = diracpark * omega / t;
+		//被積分関数からボースアインシュタイン統計の部分をぬいたもの
+		//大体10 ^ -10ぐらい
+		double other = physconst::dirac * omega * target_band.dos_getter(omega);
+		if (60.0 < energy_ratio){
+			//温度が低いとき, 角周波数が高いとき
+			while (60.0 < energy_ratio){
+				other *= std::exp(-60.0);
+				energy_ratio -= 60.0;
+			}
+			other *= std::exp(-energy_ratio);
+		} else {
+			double exp_er = std::exp(energy_ratio);
+			other /= (exp_er - 1);
+		}
+		
+		return other;
+	};
+	std::vector<std::future<std::pair<int, double>>> futures;
+	for (int t = 1; t < massconst::heatcaps_tempmax + 1; t++) {
+		futures.push_back(std::async(std::launch::async, [t, &banddata, &calculator](){
+			//温度tにおける最終的な値を出すlambda
+			double energy = 0;
+			for (std::shared_ptr<band> i: banddata){
+				energy += Romberg(i->dos_leftedge(), i->dos_rightedge(), 10, 10, std::bind(calculator, std::placeholders::_1, std::ref(*i), t));
+			}
+			return std::make_pair(t, energy);
+		}));
+	}
+	for (auto& i: futures){
+		auto res = i.get();
+		internal_energy.append(res.first, res.second);
+		temperature.append(res.second, res.first);
+	}
+	return {internal_energy, temperature};
+}
+
 /*
 double massconst::Si_group_velocity(double angular_frequency, int bandnum) {
 	const double k_rTA = 0.403;
