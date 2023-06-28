@@ -240,7 +240,7 @@ curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> band
 			//温度tにおける最終的な値を出すlambda
 			double cv = 0;
 			for (std::shared_ptr<band> i: banddata){
-				cv += Romberg(i->dos_leftedge(), i->dos_rightedge(), 7, 7, [calculator, &i, t](double omega){
+				cv += Romberg(i->dos_leftedge(), i->dos_rightedge(), 10, 10, [calculator, &i, t](double omega){
 					return calculator(omega, *i, t);
 				});
 			}
