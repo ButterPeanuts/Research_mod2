@@ -16,6 +16,7 @@
 #include<algorithm>
 #include<utility>
 #include<future>
+#include<sstream>
 
 
 
@@ -112,8 +113,8 @@ curve massconst::doscurve_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_pt
 		auto start = std::upper_bound(pscurve.begin(), pscurve.end(), std::make_pair(omega_edge[0], std::numeric_limits<double>::infinity()));
 		auto stop = std::upper_bound(pscurve.begin(), pscurve.end(), std::make_pair(omega_edge[3], std::numeric_limits<double>::infinity()));
 		//領域内の数値に対して, 積分値を求め値を更新するfutureを作る
-		std::for_each(start, stop, [&omega_edge, &futures](auto s){
-			futures.push_back(std::async(std::launch::async, [&omega_edge, &s](){
+		std::for_each(start, stop, [&omega_edge, &futures](auto& s){
+			futures.push_back(std::async(std::launch::deferred, [&omega_edge, &s](){
 				s.second += massconst::k_volume(omega_edge, s.first);
 			}));
 		});
@@ -187,7 +188,7 @@ curve massconst::doscurve_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_pt
 	}
 	
 	curve dos(logger);
-	const double intconst = 1 / (physconst::dirac * 3.0 * ndiv * ndiv * ndiv);
+	const double intconst = 1 / (massconst::si_lattice_constant * massconst::si_lattice_constant * massconst::si_lattice_constant * 6.0 * ndiv * ndiv * ndiv);
 	for (auto i: pscurve){
 		
 		dos.append(i.first, i.second * intconst);
@@ -207,6 +208,9 @@ curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> band
 	//hbar ^ 2 / k_b, 8.055 * 10 ^ -46
 	double dddpk = diracpark * physconst::dirac;
 	auto calculator = [diracpark, dddpk](double omega, band& target_band, double t){
+		if (omega == 0){
+			return 0.0;
+		};
 		//エネルギー比, これが60を超えたあたりがボルツマン近似域
 		//700を超えたあたりがdouble型範囲超過粋
 		//0を超えず, 760ぐらいまではある
@@ -227,6 +231,7 @@ curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> band
 			other /= (exp_er - 1);
 			other /= (exp_er - 1);
 		}
+		
 		return other;
 	};
 	std::vector<std::future<std::pair<int, double>>> futures;
@@ -235,7 +240,7 @@ curve massconst::heatcap_curve_construct(std::vector<std::shared_ptr<band>> band
 			//温度tにおける最終的な値を出すlambda
 			double cv = 0;
 			for (std::shared_ptr<band> i: banddata){
-				cv += Romberg(i->dos_leftedge(), i->dos_rightedge(), 7, 7, [calculator, &i, t](double omega){
+				cv += Romberg(i->dos_leftedge(), i->dos_rightedge(), 10, 10, [calculator, &i, t](double omega){
 					return calculator(omega, *i, t);
 				});
 			}
