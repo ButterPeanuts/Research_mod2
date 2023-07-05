@@ -122,7 +122,7 @@ void mc_particle::inelastic_scattering(double temperature){
 	std::vector<std::function<double(double)>> mcp_dists;
 	for (std::shared_ptr<band> selectedband: this->banddata){
 		mcp_dists.push_back([temperature, selectedband](double omega) -> double{
-			return physconst::bedist2(omega, temperature, selectedband->dos_getter(omega)  / physconst::dirac / omega);
+			return physconst::bedist2(omega, temperature, selectedband->dos_getter(omega) * physconst::dirac * omega);
 		});
 	}
 	
@@ -132,7 +132,7 @@ void mc_particle::inelastic_scattering(double temperature){
 		auto selectedband = *(this->banddata.begin() + pr);
 		auto selecteddist = (mcp_dists.begin() + pr);
 		//結果
-		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), selectedband->dos_distribution_getter());
+		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), selectedband->domcp_distribution_getter(temperature));
 		
 		if (result.first) {
 			//採用なら...
