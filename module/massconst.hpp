@@ -38,6 +38,13 @@ class massconst {
 		*/
 		static std::vector<std::pair<double, double>> dos_tetrahedron(mc_sim::brillouin_zone& bz);
 		
+		/*!
+		 * @brief band情報から(角周波数-domcp)の最大値を計算する
+		 * @param std::vector<std::pair<double, double>> dosの疑似curve
+		 * @return std::vector<std::pair<double, double>> 温度-domcpmaxの疑似curve
+		*/
+		static std::vector<std::pair<double, double>> domcpmax_tetrahedron(const std::vector<std::pair<double, double>>&);
+		
 		/*! シリコンの格子定数 */
 		constexpr static inline double si_lattice_constant = 5.431e-10;
 	public:

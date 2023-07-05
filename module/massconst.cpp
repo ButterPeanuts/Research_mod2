@@ -87,10 +87,13 @@ double massconst::si_angfreq_100_ta(const std::tuple<double, double, double>& k_
 std::pair<curve, curve> massconst::dos_domcpmax_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_ptr<mc_sim::logger>& logger){
 	//ndivを事前に取得しておく
 	auto dospscurve = massconst::dos_tetrahedron(bz);
+	auto domcpmaxpscurve = massconst::domcpmax_tetrahedron(dospscurve);
 	
 	curve dos(logger);
+	curve domcpmax(logger);
 	for_each(dospscurve.begin(), dospscurve.end(), [&dos](std::pair<double, double> x){dos.append(x.first, x.second);});
-	return {dos, curve(logger)};
+	for_each(domcpmaxpscurve.begin(), domcpmaxpscurve.end(), [&domcpmax](std::pair<double, double> x){domcpmax.append(x.first, x.second);});
+	return {dos, domcpmax};
 }
 
 std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillouin_zone& bz){
@@ -200,6 +203,28 @@ std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillo
 	const double intconst = 1 / (massconst::si_lattice_constant * massconst::si_lattice_constant * massconst::si_lattice_constant * 6.0 * ndiv * ndiv * ndiv);
 	std::for_each(pscurve.begin(), pscurve.end(), [&intconst](std::pair<double, double>& x){x.second *= intconst;});
 	return pscurve;
+}
+
+std::vector<std::pair<double, double>> massconst::domcpmax_tetrahedron(const std::vector<std::pair<double, double>>& dospscurve){
+	std::vector<std::pair<double, double>> domcpmaxpscurve;
+	
+	//計算部分
+	auto domcpmax = [&dospscurve](double t){
+		double max = 0;
+		double temp = 0;
+		for(auto i: dospscurve){
+			temp = physconst::bedist2(i.first, t, i.first * i.second * physconst::dirac);
+			if (max < temp) max = temp;
+		}
+		return std::make_pair(t, max);
+	};
+	
+	//ループ
+	std::vector<std::future<std::pair<double, double>>> futures;
+	for (int t = 0; t <= massconst::heatcaps_tempmax; t++) futures.push_back(std::async(std::launch::async, std::bind(domcpmax, static_cast<double>(t))));
+	std::for_each(futures.begin(), futures.end(), [&domcpmaxpscurve](auto& i){domcpmaxpscurve.push_back(i.get());});
+	
+	return domcpmaxpscurve;
 }
 
 //改修完了?
