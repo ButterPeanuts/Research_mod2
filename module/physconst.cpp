@@ -26,7 +26,7 @@ double physconst::bedist2(double ang_freq, double temp, double left_const){
 		}
 		return left_const * std::exp(-energy_ratio);
 	} else {
-		return 1 / (std::exp(energy_ratio) - 1);
+		return left_const / (std::exp(energy_ratio) - 1);
 	}
 }
 
