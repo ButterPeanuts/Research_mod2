@@ -207,13 +207,14 @@ std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillo
 
 std::vector<std::pair<double, double>> massconst::domcpmax_tetrahedron(const std::vector<std::pair<double, double>>& dospscurve){
 	std::vector<std::pair<double, double>> domcpmaxpscurve;
+	domcpmaxpscurve.push_back({0.0, 0.0});
 	
 	//計算部分
 	auto domcpmax = [&dospscurve](double t){
 		double max = 0;
 		double temp = 0;
-		for(auto i: dospscurve){
-			temp = physconst::bedist2(i.first, t, i.first * i.second * physconst::dirac);
+		for(auto i = std::upper_bound(dospscurve.begin(), dospscurve.end(), std::make_pair(0.0, std::numeric_limits<double>::infinity())); i < dospscurve.end(); i++){
+			temp = physconst::bedist2(i->first, t, i->first * i->second * physconst::dirac);
 			if (max < temp) max = temp;
 		}
 		return std::make_pair(t, max);
@@ -221,7 +222,7 @@ std::vector<std::pair<double, double>> massconst::domcpmax_tetrahedron(const std
 	
 	//ループ
 	std::vector<std::future<std::pair<double, double>>> futures;
-	for (int t = 0; t <= massconst::heatcaps_tempmax; t++) futures.push_back(std::async(std::launch::async, std::bind(domcpmax, static_cast<double>(t))));
+	for (int t = 1; t <= massconst::heatcaps_tempmax; t++) futures.push_back(std::async(std::launch::async, std::bind(domcpmax, static_cast<double>(t))));
 	std::for_each(futures.begin(), futures.end(), [&domcpmaxpscurve](auto& i){domcpmaxpscurve.push_back(i.get());});
 	
 	return domcpmaxpscurve;
