@@ -20,14 +20,14 @@
 */
 class band_obj : public band{
 	private:
-		curve& dos, gvelocity;
-		double domcp_max, dos_max;
+		curve& dos, gvelocity, domcpmax;
+		double dos_max;
 		wave_direction directions;
 		wave_mode mode;
 		scatconst& bands_scatconst;
 		std::shared_ptr<mc_sim::logger> logger;
 	public:
-		band_obj(std::shared_ptr<mc_sim::logger>& newlogger, curve& dos, curve& gvelocity, wave_direction direction, wave_mode mode, scatconst& bands_scatconst);
+		band_obj(std::shared_ptr<mc_sim::logger>& newlogger, curve& dos, curve& gvelocity, curve& domcpmax, wave_direction direction, wave_mode mode, scatconst& bands_scatconst);
 		/*!
 		 * @brief 状態密度(Density of State)を取得する関数
 		 * @param omega 角周波数\f$\omega\f$
@@ -45,6 +45,13 @@ class band_obj : public band{
 		 * @return 状態密度の範囲のdistribution
 		*/
 		std::uniform_real_distribution<> dos_distribution_getter() override;
+		
+		/*!
+		 * @brief (角周波数-)MC粒子密度の範囲を取得する関数
+		 * @param double 温度
+		 * @return MC粒子密度の範囲のdistribution
+		*/
+		std::uniform_real_distribution<> domcp_distribution_getter(double) override;
 		
 		/*!
 		 * @brief 群速度(Group velocity)を取得する関数

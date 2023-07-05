@@ -34,6 +34,13 @@ class band{
 	virtual std::uniform_real_distribution<> dos_distribution_getter() = 0;
 	
 	/*!
+	 * @brief (角周波数-)MC粒子密度の範囲を取得する関数
+	 * @param double 温度
+	 * @return MC粒子密度の範囲のdistribution
+	*/
+	virtual std::uniform_real_distribution<> domcp_distribution_getter(double) = 0;
+	
+	/*!
 	 * @brief dos_getterのomegaとして指定しうる範囲の下端を取得する関数
 	 * @return dos_getterのomegaとして指定しうる範囲の下端(double)
 	*/

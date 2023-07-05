@@ -4,7 +4,7 @@
 #include <logger.hpp>
 #include <scatconst.hpp>
 
-band_obj::band_obj(std::shared_ptr<mc_sim::logger>& newlogger, curve& dos, curve& gvelocity, wave_direction direction, wave_mode mode, scatconst& bands_scatconst) : dos(dos), gvelocity(gvelocity), bands_scatconst(bands_scatconst), logger(newlogger){
+band_obj::band_obj(std::shared_ptr<mc_sim::logger>& newlogger, curve& dos, curve& gvelocity, curve& domcpmax, wave_direction direction, wave_mode mode, scatconst& bands_scatconst) : dos(dos), gvelocity(gvelocity), domcpmax(domcpmax), bands_scatconst(bands_scatconst), logger(newlogger){
 	this->directions = direction;
 	this->mode = mode;
 	this->dos_max = this->dos.max();
@@ -20,6 +20,10 @@ std::uniform_real_distribution<> band_obj::dos_omega_distribution_getter(){
 
 std::uniform_real_distribution<> band_obj::dos_distribution_getter(){
 	return std::uniform_real_distribution<>(0, this->dos_max);
+}
+
+std::uniform_real_distribution<> band_obj::domcp_distribution_getter(double t){
+	return std::uniform_real_distribution<>(0, this->domcpmax.itpl_getter(t));
 }
 
 double band_obj::gvelocity_getter(double omega){
