@@ -86,15 +86,11 @@ double massconst::si_angfreq_100_ta(const std::tuple<double, double, double>& k_
 //改修完了?
 std::pair<curve, curve> massconst::dos_domcpmax_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_ptr<mc_sim::logger>& logger){
 	//ndivを事前に取得しておく
-	int ndiv = bz.ndiv_getter();
-	auto pscurve = massconst::dos_tetrahedron(bz);
+	auto dospscurve = massconst::dos_tetrahedron(bz);
 	
 	curve dos(logger);
-	const double intconst = 1 / (massconst::si_lattice_constant * massconst::si_lattice_constant * massconst::si_lattice_constant * 6.0 * ndiv * ndiv * ndiv);
-	for (auto i: pscurve){
-		dos.append(i.first, i.second * intconst);
-	}
-	return dos;
+	for_each(dospscurve.begin(), dospscurve.end(), [&dos](std::pair<double, double> x){dos.append(x.first, x.second);});
+	return {dos, curve(logger)};
 }
 
 std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillouin_zone& bz){
@@ -199,6 +195,10 @@ std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillo
 			}
 		}
 	}
+	
+	//定数部分を補正
+	const double intconst = 1 / (massconst::si_lattice_constant * massconst::si_lattice_constant * massconst::si_lattice_constant * 6.0 * ndiv * ndiv * ndiv);
+	std::for_each(pscurve.begin(), pscurve.end(), [&intconst](std::pair<double, double>& x){x.second *= intconst;});
 	return pscurve;
 }
 
