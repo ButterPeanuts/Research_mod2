@@ -84,7 +84,20 @@ double massconst::si_angfreq_100_ta(const std::tuple<double, double, double>& k_
 }
 
 //改修完了?
-curve massconst::doscurve_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_ptr<mc_sim::logger>& logger){
+std::pair<curve, curve> massconst::dos_domcpmax_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_ptr<mc_sim::logger>& logger){
+	//ndivを事前に取得しておく
+	int ndiv = bz.ndiv_getter();
+	auto pscurve = massconst::dos_tetrahedron(bz);
+	
+	curve dos(logger);
+	const double intconst = 1 / (massconst::si_lattice_constant * massconst::si_lattice_constant * massconst::si_lattice_constant * 6.0 * ndiv * ndiv * ndiv);
+	for (auto i: pscurve){
+		dos.append(i.first, i.second * intconst);
+	}
+	return dos;
+}
+
+std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillouin_zone& bz){
 	//仮のカーブ 外部から書き込み可能にしたいためこの形式
 	std::vector<std::pair<double, double>> pscurve;
 	//角周波数0を最初に入れておく
@@ -186,14 +199,7 @@ curve massconst::doscurve_tetrahedron(mc_sim::brillouin_zone& bz, std::shared_pt
 			}
 		}
 	}
-	
-	curve dos(logger);
-	const double intconst = 1 / (massconst::si_lattice_constant * massconst::si_lattice_constant * massconst::si_lattice_constant * 6.0 * ndiv * ndiv * ndiv);
-	for (auto i: pscurve){
-		
-		dos.append(i.first, i.second * intconst);
-	}
-	return dos;
+	return pscurve;
 }
 
 //改修完了?

@@ -31,6 +31,13 @@ class massconst {
 		*/
 		static double k_volume(std::array<double, 4>const &, double omega);
 		
+		/*!
+		 * @brief band情報からdosを計算する
+		 * @param mc_sim::brillouin_zone バンドの情報
+		 * @return std::vector<std::pair<double, double>> dosの疑似curve
+		*/
+		static std::vector<std::pair<double, double>> dos_tetrahedron(mc_sim::brillouin_zone& bz);
+		
 		/*! シリコンの格子定数 */
 		constexpr static inline double si_lattice_constant = 5.431e-10;
 	public:
@@ -56,12 +63,12 @@ class massconst {
 		//static void Si_dispersion_table_construct();
 		
 		/*!
-		 * @brief 分散関係からdosのcurveを四面体法で構築する
+		 * @brief 分散関係からdosのcurveと, domcpの最大値curveを四面体法で構築する
 		 * @param mc_sim::brillouin_zone const & 分散関係
 		 * @param std::shared_ptr<mc_sim::logger>& curveに入れるロガー
-		 * @return curve dosの関数curve
+		 * @return std::pair<curve, curve> dosの関数curveとdomcp最大値の関数curve
 		*/
-		static curve doscurve_tetrahedron(mc_sim::brillouin_zone&, std::shared_ptr<mc_sim::logger>&);
+		static std::pair<curve, curve> dos_domcpmax_tetrahedron(mc_sim::brillouin_zone&, std::shared_ptr<mc_sim::logger>&);
 		
 		/*!
 		 * @brief band情報から比熱curveを計算する
