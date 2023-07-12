@@ -89,33 +89,43 @@ void simulation::Particle_Disp_output(std::string filename) {
 
 bool simulation::Temperature_construct() {
 	//各meshのEnergy密度
-	std::vector<std::vector<std::vector<double>>> MeshEnergy= std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>((int)spacemesh[2], 0)));
+	std::vector<std::vector<std::vector<std::atomic<int>>>> mesh_particlecnt = std::vector<std::vector<std::vector<std::atomic<int>>>>(spacemesh[0], std::vector < std::vector<std::atomic<int>>>(spacemesh[1], std::vector<std::atomic<int>>(spacemesh[2], 0)));
 	
-	//MeshEnergyを計算
-	double drpro = std::accumulate(this->dr.begin(), this->dr.end(), 1.0, std::multiplies<>());
 	
 	this->logger->debug("We will construct MeshEnergys.");
-	for (auto i: mc_particles){
-		auto index = this->square(i.position);
-		MeshEnergy[index[0]][index[1]][index[2]] += this->energy_mcparticles / drpro;
+	{
+		std::vector<std::future<void>> futures;
+		for (auto& i: mc_particles){
+			futures.push_back(std::async(std::launch::async, [&i, &mesh_particlecnt, this](){
+				auto index = this->square(i.position);
+				mesh_particlecnt[index[0]][index[1]][index[2]]++;
+			}));
+		}
+		for (auto& i: futures)i.get();
+		this->logger->debug("We have just constructed MeshEnergys.");
 	}
-	this->logger->debug("We have just constructed MeshEnergys.");
 	
 	//dTは多分Tの差分
 	//Tの変動が少ないと終わるはず
 	double dT = 0;
+	//meshの体積の逆数
+	const double drpro_inv = 1.0 / std::accumulate(this->dr.begin(), this->dr.end(), 1.0, std::multiplies<>());
+
+	std::vector<std::future<double>> futures;
 	for(int i = 0 ; i < spacemesh[0];i++){
-		for(int j = 0 ; j < spacemesh[1];j++){
-			#pragma omp parallel for
-			for(int k = 0 ; k < spacemesh[2];k++){
-				double old_Temperature = Temperature[i][j][k];
-				Temperature[i][j][k] = this->heat_cap.itpl_getter(MeshEnergy[i][j][k]);
-				#pragma omp atomic
-				dT += fabs(old_Temperature - Temperature[i][j][k]);
+		futures.push_back(std::async(std::launch::async, [i, &mesh_particlecnt, this, &drpro_inv](){
+			double dtpart = 0;
+			for(int j = 0 ; j < spacemesh[1];j++){
+				for(int k = 0 ; k < spacemesh[2];k++){
+					double old_Temperature = Temperature[i][j][k];
+					Temperature[i][j][k] = this->heat_cap.itpl_getter(static_cast<double>(mesh_particlecnt[i][j][k]) * this->energy_mcparticles * drpro_inv);
+					dtpart += fabs(old_Temperature - Temperature[i][j][k]);
+				}
 			}
-			#pragma omp barrier
-		}
+			return dtpart;
+		}));
 	}
+	for (auto& i: futures)dT += i.get();
 	/* std::cout << dT << std::endl; */
 	this->logger->info("Temperature table is updated. dT is " + std::to_string(dT));
 	/*if (emesh, 3) / 2)return true;
