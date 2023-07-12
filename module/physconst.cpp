@@ -2,6 +2,7 @@
 #include<random>
 #include<utility>
 #include<functional>
+#include<exception>
 static std::random_device thrand;
 
 std::mt19937_64 physconst::mtrand(thrand());
@@ -18,6 +19,7 @@ double physconst::bedist(double ang_freq, double temp){
 
 double physconst::bedist2(double ang_freq, double temp, double left_const){
 	//10^-4から10^4
+	if (temp == 0 || ang_freq == 0)throw std::domain_error("角周波数, または温度が0です");
 	double energy_ratio = physconst::dirac / physconst::boltzmann * ang_freq / temp;
 	if (energy_ratio > 100){
 		while (energy_ratio > 100){
