@@ -130,4 +130,25 @@ class band_obj : public band{
 		 * @brief 境界散乱の散乱係数f
 		*/
 		double f() override;
+		
+		/*!
+		 * @brief フォノン-フォノン散乱確率
+		 * @param double 角周波数\f$\omega\f$
+		 * @param double 温度\f$T\f$
+		 * @param double 経過時間\f$\Delta t\f$
+		*/
+		double scatprob_u(double, double, double) override;
+		/*!
+		 * @brief フォノン-欠陥散乱確率
+		 * @param double 角周波数\f$\omega\f$
+		 * @param double 経過時間\f$\Delta t\f$
+		*/
+		double scatprob_d(double, double) override;
+		/*!
+		 * @brief フォノン-境界散乱確率
+		 * @param double 群速度\f$\bar(v)\f$
+		 * @param double 特徴長さ\f$L\f$
+		 * @param double 経過時間\f$\Delta t\f$
+		*/
+		double scatprob_b(double, double, double) override;
 };

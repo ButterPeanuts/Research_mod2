@@ -81,3 +81,15 @@ double band_obj::c(){
 double band_obj::f(){
 	return this->bands_scatconst.f();
 }
+
+double band_obj::scatprob_u(double omega, double t, double dt){
+	return -std::expm1(-this->bands_scatconst.tau_u_inv(omega, t) * dt);
+}
+
+double band_obj::scatprob_d(double omega, double dt){
+	return -std::expm1(-this->bands_scatconst.tau_d_inv(omega) * dt);
+}
+
+double band_obj::scatprob_b(double gvelocity, double l, double dt){
+	return -std::expm1(-this->bands_scatconst.tau_b_inv(gvelocity, l) * dt);
+}
