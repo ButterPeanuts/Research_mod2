@@ -50,7 +50,21 @@ namespace mc_sim{
 			/*!
 			 * @brief 粒子に非弾性散乱を起こす
 			*/
-			void inelastic_scattering(double temperature);
+			void inelastic_scattering(double temperature, double dt);
+			
+			/*!
+			 * @brief 粒子の角周波数を再配置する
+			 * @param double 温度
+			 * @param bool Kirchhoff則適用の有無
+			 * @param double Kirchhoff則における経過時間
+			*/
+			void angfreq_replace(double, bool, double = 1);
+			
+			/*!
+			 * @brief MC粒子分布最大値が最大となるバンドのdomcp_distribution
+			 * @param double 温度
+			*/
+			std::uniform_real_distribution<double> max_dd(double);
 		
 		public :
 			/*! 変位 */

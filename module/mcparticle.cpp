@@ -16,7 +16,8 @@ mc_particle::mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, doubl
 	this->velocity_pointing = std::vector<double>(mc_particle::dimension, 0);
 	
 	//角周波数, バンド, 速度方向といった初期状態を決定
-	this->inelastic_scattering(temperature);
+	this->angfreq_replace(temperature, false);
+	this->elastic_scattering();
 	
 	//変位の初期状態を決定
 	this->position = std::vector<double>(mc_particle::dimension, 0);
@@ -111,7 +112,12 @@ void mc_particle::elastic_scattering() {
 	return;
 }
 
-void mc_particle::inelastic_scattering(double temperature){
+void mc_particle::inelastic_scattering(double temperature, double dt){
+	this->angfreq_replace(temperature, true, dt);
+	this->elastic_scattering();
+}
+
+void mc_particle::angfreq_replace(double temperature, bool kirchhoff, double dt){
 	//https://github.com/ButterPeanuts/Research_mod2/issues/9
 	//このissueの通り, DOSテーブル範囲外の積分は無視できるとして組まれている
 	
@@ -121,18 +127,25 @@ void mc_particle::inelastic_scattering(double temperature){
 	//MC粒子分布関数
 	std::vector<std::function<double(double)>> mcp_dists;
 	for (std::shared_ptr<band> selectedband: this->banddata){
-		mcp_dists.push_back([temperature, selectedband](double omega) -> double{
-			return physconst::bedist2(omega, temperature, selectedband->dos_getter(omega) * physconst::dirac * omega);
-		});
+		if (kirchhoff){
+			mcp_dists.push_back([temperature, selectedband, dt](double omega) -> double{
+				return selectedband->scatprob_u(omega, temperature, dt) * physconst::bedist2(omega, temperature, selectedband->dos_getter(omega) * physconst::dirac * omega);
+			});
+		}else{
+			mcp_dists.push_back([temperature, selectedband](double omega) -> double{
+				return physconst::bedist2(omega, temperature, selectedband->dos_getter(omega) * physconst::dirac * omega);
+			});
+		}
 	}
 	
+	auto domcp_distribution = this->max_dd(temperature);
 	while (true) {
 		//どのバンド?
 		int pr = randp(physconst::mtrand);
 		auto selectedband = *(this->banddata.begin() + pr);
 		auto selecteddist = (mcp_dists.begin() + pr);
 		//結果
-		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), selectedband->domcp_distribution_getter(temperature));
+		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), domcp_distribution);
 		
 		if (result.first) {
 			//採用なら...
@@ -144,8 +157,9 @@ void mc_particle::inelastic_scattering(double temperature){
 		}
 	}
 	
-	//速度方向変更
-	this->elastic_scattering();
-	
 	return;
+}
+
+std::uniform_real_distribution<double> mc_particle::max_dd(double t){
+	return (*std::max_element(banddata.begin(), banddata.end(), [t](const std::shared_ptr<band>& a, const std::shared_ptr<band>& b){return (a->domcp_distribution_getter(t).max() <= b->domcp_distribution_getter(t).max());}))->domcp_distribution_getter(t);
 }
