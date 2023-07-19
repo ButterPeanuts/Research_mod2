@@ -93,3 +93,10 @@ double band_obj::scatprob_d(double omega, double dt){
 double band_obj::scatprob_b(double gvelocity, double l, double dt){
 	return -std::expm1(-this->bands_scatconst.tau_b_inv(gvelocity, l) * dt);
 }
+
+double band_obj::mintau(double tmax, double l){
+	auto& scat = this->bands_scatconst;
+	double omegamax = this->dos_leftedge();
+	double gvelocitymax = this->gvelocity.max();
+	return 1 / (scat.tau_u_inv(omegamax, tmax) + scat.tau_d_inv(omegamax) + scat.tau_b_inv(gvelocitymax, l));
+}

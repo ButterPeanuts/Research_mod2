@@ -138,4 +138,11 @@ class band{
 	 * @param double 経過時間\f$\Delta t\f$
 	*/
 	virtual double scatprob_b(double, double, double) = 0;
+	
+	/*!
+	 * @brief 全緩和時間の最小を求める
+	 * @param double 最大温度\f$T_{max}\f$
+	 * @param double 特徴長さ\f$L\f$
+	*/
+	virtual double mintau(double, double) = 0;
 };

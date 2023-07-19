@@ -151,4 +151,11 @@ class band_obj : public band{
 		 * @param double 経過時間\f$\Delta t\f$
 		*/
 		double scatprob_b(double, double, double) override;
+		
+		/*!
+		 * @brief 全緩和時間の最小を求める
+		 * @param double 最大温度\f$T_{max}\f$
+		 * @param double 特徴長さ\f$L\f$
+		*/
+		double mintau(double, double) override;
 };
