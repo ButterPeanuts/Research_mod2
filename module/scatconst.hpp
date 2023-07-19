@@ -55,6 +55,7 @@ class scatconst{
 	/*!
 	 * @brief フォノン-境界散乱の緩和時間
 	 * @param double 群速度\f$\bar(v)\f$
+	 * @param double 特徴長さ\f$L\f$
 	*/
-	double tau_b_inv(double);
+	double tau_b_inv(double, double);
 };
