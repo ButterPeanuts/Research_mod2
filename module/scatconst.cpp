@@ -35,3 +35,15 @@ double scatconst::chi(){return this->table[2];}
 double scatconst::xi(){return this->table[3];}
 double scatconst::c(){return this->table[4];}
 double scatconst::f(){return this->table[5];}
+
+double scatconst::tau_u_inv(double omega, double t){
+	return this->a() * std::pow(omega, this->chi()) * std::pow(t, this->xi()) * std::exp(-this->b() / t);
+}
+
+double scatconst::tau_d_inv(double omega){
+	return this->c() * std::pow(omega, 4);
+}
+
+double scatconst::tau_b_inv(double gvelocity, double l){
+	return gvelocity / this->f() / l;
+}

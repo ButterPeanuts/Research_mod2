@@ -117,4 +117,32 @@ class band{
 	 * @brief 境界散乱の散乱係数f
 	*/
 	virtual double f() = 0;
+	
+	/*!
+	 * @brief フォノン-フォノン散乱確率
+	 * @param double 角周波数\f$\omega\f$
+	 * @param double 温度\f$T\f$
+	 * @param double 経過時間\f$\Delta t\f$
+	*/
+	virtual double scatprob_u(double, double, double) = 0;
+	/*!
+	 * @brief フォノン-欠陥散乱確率
+	 * @param double 角周波数\f$\omega\f$
+	 * @param double 経過時間\f$\Delta t\f$
+	*/
+	virtual double scatprob_d(double, double) = 0;
+	/*!
+	 * @brief フォノン-境界散乱確率
+	 * @param double 群速度\f$\bar(v)\f$
+	 * @param double 特徴長さ\f$L\f$
+	 * @param double 経過時間\f$\Delta t\f$
+	*/
+	virtual double scatprob_b(double, double, double) = 0;
+	
+	/*!
+	 * @brief 全緩和時間の最小を求める
+	 * @param double 最大温度\f$T_{max}\f$
+	 * @param double 特徴長さ\f$L\f$
+	*/
+	virtual double mintau(double, double) = 0;
 };

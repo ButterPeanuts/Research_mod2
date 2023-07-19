@@ -40,4 +40,22 @@ class scatconst{
 	double xi();
 	double c();
 	double f();
+	
+	/*!
+	 * @brief フォノン-フォノン散乱の緩和時間
+	 * @param double 角周波数\f$\omega\f$
+	 * @param double 温度\f$T\f$
+	*/
+	double tau_u_inv(double, double);
+	/*!
+	 * @brief フォノン-欠陥散乱の緩和時間
+	 * @param double 角周波数\f$\omega\f$
+	*/
+	double tau_d_inv(double);
+	/*!
+	 * @brief フォノン-境界散乱の緩和時間
+	 * @param double 群速度\f$\bar(v)\f$
+	 * @param double 特徴長さ\f$L\f$
+	*/
+	double tau_b_inv(double, double);
 };
