@@ -130,6 +130,17 @@ add_executable(main test.cpp)
 target_compile_options(main PRIVATE -Wall)
 target_compile_features(main PRIVATE cxx_std_20)
 
+target_link_libraries(main PRIVATE massconst)
+target_link_libraries(main PRIVATE logger_obj)
+target_link_libraries(main PRIVATE band_obj)
+target_link_libraries(main PRIVATE curve)
+target_link_libraries(main PRIVATE spdlog::spdlog)
+target_link_libraries(main PRIVATE scatconst)
+target_link_libraries(main PRIVATE brillouin_zone_funcobj)
+target_link_libraries(main PRIVATE simulation)
+
+target_include_directories(main PRIVATE ${spdlog_DIR})
+
 
 
 add_executable(calculator calculator.cpp)
