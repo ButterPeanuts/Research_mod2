@@ -22,6 +22,10 @@ add_compile_options("$<$<CONFIG:Debug>:-O0>")
 set(spdlog_DIR "spdlog/build")
 find_package(spdlog REQUIRED)
 
+#OpenMP
+find_package(OpenMP REQUIRED)
+
+
 
 #integral
 add_library(integral STATIC module/Integral.cpp)
@@ -105,18 +109,16 @@ add_library(simulation STATIC module/simulation.cpp)
 
 target_include_directories(simulation PUBLIC module)
 target_compile_options(simulation PRIVATE -Wall)
-target_compile_options(simulation PRIVATE -fopenmp)
-target_compile_options(simulation PRIVATE -MT)
 target_compile_features(simulation PRIVATE cxx_std_20)
 
 target_link_libraries(simulation PRIVATE mcparticle)
+target_link_libraries(simulation PRIVATE OpenMP::OpenMP_CXX)
 
 
 #brillouin_zone_funcobj
 add_library(brillouin_zone_funcobj STATIC module/brillouin_zone_funcobj.cpp)
 
 target_include_directories(brillouin_zone_funcobj PUBLIC module)
-target_compile_options(brillouin_zone_funcobj PRIVATE -MT)
 target_compile_options(brillouin_zone_funcobj PRIVATE -Wall)
 target_compile_features(brillouin_zone_funcobj PRIVATE cxx_std_20)
 
@@ -129,6 +131,17 @@ add_executable(main test.cpp)
 
 target_compile_options(main PRIVATE -Wall)
 target_compile_features(main PRIVATE cxx_std_20)
+
+target_link_libraries(main PRIVATE massconst)
+target_link_libraries(main PRIVATE logger_obj)
+target_link_libraries(main PRIVATE band_obj)
+target_link_libraries(main PRIVATE curve)
+target_link_libraries(main PRIVATE spdlog::spdlog)
+target_link_libraries(main PRIVATE scatconst)
+target_link_libraries(main PRIVATE brillouin_zone_funcobj)
+target_link_libraries(main PRIVATE simulation)
+
+target_include_directories(main PRIVATE ${spdlog_DIR})
 
 
 
@@ -146,11 +159,3 @@ target_link_libraries(calculator PRIVATE scatconst)
 target_link_libraries(calculator PRIVATE brillouin_zone_funcobj)
 
 target_include_directories(calculator PRIVATE ${spdlog_DIR})
-
-
-# target_link_libraries(main PRIVATE massconst)
-# target_link_libraries(main PRIVATE simulation)
-# target_link_libraries(main PRIVATE mcparticles)
-# target_link_libraries(main PRIVATE physconst)
-# target_link_libraries(main PRIVATE logger_obj)
-

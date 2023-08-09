@@ -151,8 +151,8 @@ void simulation::Particle_move(double dt) {
 	/* } */
 	/* #pragma omp barrier */
 	std::vector<std::future<void>> futures;
-	for (auto i: this->mc_particles){
-		futures.push_back(std::async(std::launch::async, [dt, this, &i](){
+	for (auto& i: this->mc_particles){
+		futures.push_back(std::async(std::launch::deferred, [dt, this, &i](){
 			auto beforecoor = this->square(i.position);
 			auto beforeindex = this->tempcoor_to_fdlinear({beforecoor[0], beforecoor[1], beforecoor[2]});
 			
@@ -182,7 +182,7 @@ void simulation::Particle_move(double dt) {
 std::vector<int> simulation::square(std::vector<double> position){
 	std::vector<int> res = std::vector<int>();
 	for (int i = 0; i < this->dr.size(); i++){
-		res.push_back(static_cast<int>(std::clamp(position[i] / this->dr[i], 0.0, static_cast<double>(spacemesh[i]) - 0.5)));
+		res.push_back(std::clamp(static_cast<int>(std::floor(position[i] / this->dr[i])), 0, spacemesh[i] - 1));
 	}
 	return res;
 }

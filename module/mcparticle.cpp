@@ -85,14 +85,14 @@ void mc_particle::scatter(double temperature,double dt,double min_structure) {
 	double pes = 1 - std::exp(-dt * (tdi + tbi));
 	if (1 < pnes + pes){
 		//確率がおかしいとき(散乱確率が1以上)は警告を発する
-		this->logger.warn("Probability of scattering is 1 or more!");
+		this->logger->warn("Probability of scattering is 1 or more!");
 	}
 	
 	//散乱の決定, 実行
 	std::uniform_real_distribution<> randp(0, 1);
 	double scattering_factor = randp(physconst::mtrand);
 	if (scattering_factor < pnes){
-		this->inelastic_scattering(temperature);
+		this->inelastic_scattering(temperature, dt);
 	} else if (scattering_factor < (pnes + pes)){
 		this->elastic_scattering();
 	}

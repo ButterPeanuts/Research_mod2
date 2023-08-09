@@ -2,6 +2,7 @@
 #include<string>
 #include<fstream>
 #include<sstream>
+#include<cmath>
 #include<scatconst.hpp>
 #include<logger.hpp>
 
