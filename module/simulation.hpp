@@ -2,6 +2,7 @@
 #include<functional>
 #include<string>
 #include<memory>
+#include<mutex>
 
 #include"mcparticle.hpp"
 #include<curve.hpp>
@@ -25,6 +26,29 @@ class simulation {
 		//y方向の薄膜?
 		std::vector<double> max_r;
 		std::vector<double> dr;
+		
+		/*! 各メッシュごとのMC粒子数 */
+		std::vector<int> mcp_freqdist;
+		/*! 頻度分布mcp_freqdist用mutex */
+		std::vector<std::mutex> mcp_freqdist_mutex;
+		/*!
+		 * @brief 各メッシュにおける粒子の頻度分布を更新する
+		 * @details 頻度分布を計算し, mcp_freqdistを更新する
+		*/
+		void freqdist_construct();
+		/*!
+		 * @brief meshの離散三次元座標を離散1次元座標に直す
+		 * @details temperatureは3次元コンテナ, mcp_freqdistは1次元コンテナ
+		 * この2つの座標系を橋渡しする
+		 * @param const std::array<int, 3>& 3次元座標
+		 * @return int 1次元座標
+		*/
+		int tempcoor_to_fdlinear(const std::array<int, 3>&);
+		/*!
+		 * @brief 各メッシュにおける粒子の温度分布を更新する
+		 * @details 温度分布を計算し, temperatureを更新する
+		*/
+		bool temperature_construct();
 	public:
 		//physconstへ移転
 		/* static double Total_energy2(double Temperature); */
@@ -36,6 +60,5 @@ class simulation {
 		
 		std::vector<std::vector<std::vector<double>>> Temperature;
 		void Particle_move(double dt);
-		bool Temperature_construct();
 		void Particle_Disp_output(std::string filename);
 };
