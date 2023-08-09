@@ -69,7 +69,7 @@ int main(){
 	
 	//ƒVƒ~ƒ…ƒŒ[ƒ^[
 	simulation mainsimulation(1000, max_r, spacemesh, tempof_device, internalenergy, tempcurve, simulator_logger, bandlist);
-	mainsimulation.Temperature_construct();
+	/* mainsimulation.Temperature_construct(); */
 	
 	
 	//Å¬ŠÉ˜aŠÔ˜a‚ğ‹‚ß‚é
@@ -87,10 +87,11 @@ int main(){
 	
 	//std::vector<double> output_thr = { 1e-9,1e-8,1e-7,1e-6,1.6e-6,2.5e-6,4e-6,6.3e-6,1e-5,1.6e-5,2.5e-5,4e-5,6.3e-5,1e-4};
 	//auto start = std::chrono::system_clock::now();
-	double time_end = 1e-9;
+	double time_end = 1e-13;
 	for (;;) {
 		mainsimulation.Particle_move(mintau);
-		mainsimulation.Temperature_construct();
+		//Particle_move‚É‹zû‚³‚ê‚½“®ì
+		/* mainsimulation.Temperature_construct(); */
 		time_sim += mintau;
 		std::cout << time_sim << std::endl;
 		if (time_sim > time_end)break;
