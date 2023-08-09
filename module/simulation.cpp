@@ -6,6 +6,8 @@
 #include<omp.h>
 #include<future>
 #include<iostream>
+#include<mutex>
+#include<array>
 
 #include"simulation.hpp"
 #include"mcparticle.hpp"
@@ -60,6 +62,11 @@ simulation::simulation(int numof_mcp, std::vector<double>& max_r, std::vector<in
 	this->logger->debug("We have just constructed mcparticles.");
 	
 	this->Temperature = std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>(spacemesh[2], 0.0)));
+	this->mcp_freqdist = std::vector<int>(std::accumulate(this->spacemesh.begin(), this->spacemesh.end(), 1, std::multiplies<>()), 0);
+	std::vector<std::mutex> temp_mutex(std::accumulate(this->spacemesh.begin(), this->spacemesh.end(), 1, std::multiplies<>()));
+	this->mcp_freqdist_mutex.swap(temp_mutex);
+	this->freqdist_construct();
+	this->temperature_construct();
 	
 	this->logger->info("Simulation is constructed");
 }
@@ -87,38 +94,39 @@ void simulation::Particle_Disp_output(std::string filename) {
 	files.close();
 }
 
-bool simulation::Temperature_construct() {
-	//各meshのEnergy密度
-	std::vector<std::vector<std::vector<std::atomic<int>>>> mesh_particlecnt = std::vector<std::vector<std::vector<std::atomic<int>>>>(spacemesh[0], std::vector < std::vector<std::atomic<int>>>(spacemesh[1], std::vector<std::atomic<int>>(spacemesh[2], 0)));
-	
-	
-	this->logger->debug("We will construct MeshEnergys.");
-	{
-		std::vector<std::future<void>> futures;
-		for (auto& i: mc_particles){
-			futures.push_back(std::async(std::launch::async, [&i, &mesh_particlecnt, this](){
-				auto index = this->square(i.position);
-				mesh_particlecnt[index[0]][index[1]][index[2]]++;
-			}));
-		}
-		for (auto& i: futures)i.get();
-		this->logger->debug("We have just constructed MeshEnergys.");
+void simulation::freqdist_construct(){
+	std::vector<std::future<void>> futures;
+	for (auto& i: this->mc_particles){
+		futures.push_back(std::async(std::launch::async, [&i, this](){
+			auto coor = this->square(i.position);
+			auto index = this->tempcoor_to_fdlinear({coor[0], coor[1], coor[2]});
+			{
+				std::lock_guard<std::mutex> lock(this->mcp_freqdist_mutex[index]);
+				this->mcp_freqdist[index]++;
+			}
+		}));
 	}
+	for (auto& i: futures)i.get();
+}
+
+bool simulation::temperature_construct() {
+	this->logger->debug("We will construct MeshEnergys.");
 	
 	//dTは多分Tの差分
 	//Tの変動が少ないと終わるはず
 	double dT = 0;
 	//meshの体積の逆数
 	const double drpro_inv = 1.0 / std::accumulate(this->dr.begin(), this->dr.end(), 1.0, std::multiplies<>());
-
+	
 	std::vector<std::future<double>> futures;
 	for(int i = 0 ; i < spacemesh[0];i++){
-		futures.push_back(std::async(std::launch::async, [i, &mesh_particlecnt, this, &drpro_inv](){
+		futures.push_back(std::async(std::launch::async, [i, this, &drpro_inv](){
 			double dtpart = 0;
 			for(int j = 0 ; j < spacemesh[1];j++){
 				for(int k = 0 ; k < spacemesh[2];k++){
+					auto index = this->tempcoor_to_fdlinear({i, j, k});
 					double old_Temperature = Temperature[i][j][k];
-					Temperature[i][j][k] = this->heat_cap.itpl_getter(static_cast<double>(mesh_particlecnt[i][j][k]) * this->energy_mcparticles * drpro_inv);
+					Temperature[i][j][k] = this->heat_cap.itpl_getter(static_cast<double>(this->mcp_freqdist[index]) * this->energy_mcparticles * drpro_inv);
 					dtpart += fabs(old_Temperature - Temperature[i][j][k]);
 				}
 			}
@@ -145,15 +153,30 @@ void simulation::Particle_move(double dt) {
 	std::vector<std::future<void>> futures;
 	for (auto i: this->mc_particles){
 		futures.push_back(std::async(std::launch::async, [dt, this, &i](){
+			auto beforecoor = this->square(i.position);
+			auto beforeindex = this->tempcoor_to_fdlinear({beforecoor[0], beforecoor[1], beforecoor[2]});
+			
 			i.nextstep(dt);
 			i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]);
 			std::vector<int> index = this->square(i.position);
 			i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end()));
+			
+			auto aftercoor = this->square(i.position);
+			auto afterindex = this->tempcoor_to_fdlinear({aftercoor[0], aftercoor[1], aftercoor[2]});
+			{
+				std::lock_guard<std::mutex> lock(this->mcp_freqdist_mutex[beforeindex]);
+				this->mcp_freqdist[beforeindex]--;
+			}
+			{
+				std::lock_guard<std::mutex> lock(this->mcp_freqdist_mutex[afterindex]);
+				this->mcp_freqdist[afterindex]++;
+			}
 		}));
 	}
 	for (auto& i: futures){
 		i.get();
 	}
+	temperature_construct();
 }
 
 std::vector<int> simulation::square(std::vector<double> position){
@@ -162,4 +185,8 @@ std::vector<int> simulation::square(std::vector<double> position){
 		res.push_back(static_cast<int>(std::clamp(position[i] / this->dr[i], 0.0, static_cast<double>(spacemesh[i]) - 0.5)));
 	}
 	return res;
+}
+
+int simulation::tempcoor_to_fdlinear(const std::array<int, 3>& meshcoor){
+	return meshcoor[2] + meshcoor[1] * this->spacemesh[2] + meshcoor[0] * this->spacemesh[2] * this->spacemesh[1];
 }
