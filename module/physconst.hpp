@@ -29,9 +29,10 @@ class physconst {
 		 * @param f 乱数分布, 確率変数を引数とし, 確率密度を返す関数
 		 * @param xdist 確率変数の範囲
 		 * @param fdist 確率密度の範囲
+		 * @param engine 乱数器
 		 * @return <結果, 採用ならその時の確率変数>のタプル
 		*/
-		static std::pair<bool, double> vonNeumann_rejection(std::function<double(double)> f, std::uniform_real_distribution<> xdist, std::uniform_real_distribution<> fdist);
+		static std::pair<bool, double> vonNeumann_rejection(std::function<double(double)> f, std::uniform_real_distribution<> xdist, std::uniform_real_distribution<> fdist, std::mt19937_64 engine);
 		
 		/*!
 		 * @brief 非推奨
