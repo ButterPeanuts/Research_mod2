@@ -32,7 +32,7 @@ class physconst {
 		 * @param engine 乱数器
 		 * @return <結果, 採用ならその時の確率変数>のタプル
 		*/
-		static std::pair<bool, double> vonNeumann_rejection(std::function<double(double)> f, std::uniform_real_distribution<> xdist, std::uniform_real_distribution<> fdist, std::mt19937_64 engine);
+		static std::pair<bool, double> vonNeumann_rejection(std::function<double(double)>& f, std::uniform_real_distribution<>& xdist, std::uniform_real_distribution<>& fdist, std::mt19937_64& engine);
 		
 		/*!
 		 * @brief 非推奨
