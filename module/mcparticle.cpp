@@ -11,7 +11,7 @@
 
 using namespace mc_sim;
 
-mc_particle::mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, double temperature, const std::vector<std::shared_ptr<band>>& bandinj) : banddata(bandinj), logger(newlogger){
+mc_particle::mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, double temperature, const std::vector<std::shared_ptr<band>>& bandinj, uint_fast64_t seed) : banddata(bandinj), logger(newlogger){
 	//速度方向のベクトルを作る
 	this->velocity_pointing = std::vector<double>(mc_particle::dimension, 0);
 	
@@ -21,6 +21,9 @@ mc_particle::mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, doubl
 	
 	//変位の初期状態を決定
 	this->position = std::vector<double>(mc_particle::dimension, 0);
+	
+	//乱数器を生成
+	this->mtrand = std::mt19937_64(seed);
 }
 
 void mc_particle::nextstep(double dt) {
@@ -38,7 +41,7 @@ void mc_particle::boundaryscatter_b(double max_x, double max_y, double max_z) {
 		double sin_oldtheta = std::sqrt(1 - this->velocity_pointing[1] * this->velocity_pointing[1]);
 		velocity_pointing[0] /= sin_oldtheta;
 		velocity_pointing[2] /= sin_oldtheta;
-		double cos_newtheta = std::sqrt(randR(physconst::mtrand));
+		double cos_newtheta = std::sqrt(randR(this->mtrand));
 		velocity_pointing[1] = (this->position[1] < 0 ? 1 : -1) * cos_newtheta;
 		double sin_newtheta = std::sqrt(1 - cos_newtheta * cos_newtheta);
 		velocity_pointing[0] *= sin_newtheta;
@@ -49,7 +52,7 @@ void mc_particle::boundaryscatter_b(double max_x, double max_y, double max_z) {
 		double sin_oldtheta = std::sqrt(1 - this->velocity_pointing[0] * this->velocity_pointing[0]);
 		velocity_pointing[1] /= sin_oldtheta;
 		velocity_pointing[2] /= sin_oldtheta;
-		double cos_newtheta = std::sqrt(randR(physconst::mtrand));
+		double cos_newtheta = std::sqrt(randR(this->mtrand));
 		velocity_pointing[0] = (this->position[0] < 0 ? 1 : -1) * cos_newtheta;
 		double sin_newtheta = std::sqrt(1 - cos_newtheta * cos_newtheta);
 		velocity_pointing[1] *= sin_newtheta;
@@ -60,7 +63,7 @@ void mc_particle::boundaryscatter_b(double max_x, double max_y, double max_z) {
 		double sin_oldtheta = std::sqrt(1 - this->velocity_pointing[2] * this->velocity_pointing[2]);
 		velocity_pointing[0] /= sin_oldtheta;
 		velocity_pointing[1] /= sin_oldtheta;
-		double cos_newtheta = std::sqrt(randR(physconst::mtrand));
+		double cos_newtheta = std::sqrt(randR(this->mtrand));
 		velocity_pointing[2] = (this->position[2] < 0 ? 1 : -1) * cos_newtheta;
 		double sin_newtheta = std::sqrt(1 - cos_newtheta * cos_newtheta);
 		velocity_pointing[0] *= sin_newtheta;
@@ -90,7 +93,7 @@ void mc_particle::scatter(double temperature,double dt,double min_structure) {
 	
 	//散乱の決定, 実行
 	std::uniform_real_distribution<> randp(0, 1);
-	double scattering_factor = randp(physconst::mtrand);
+	double scattering_factor = randp(this->mtrand);
 	if (scattering_factor < pnes){
 		this->inelastic_scattering(temperature, dt);
 	} else if (scattering_factor < (pnes + pes)){
@@ -103,8 +106,8 @@ void mc_particle::scatter(double temperature,double dt,double min_structure) {
 void mc_particle::elastic_scattering() {
 	//https://qiita.com/aa_debdeb/items/e416ae8a018692fc07eb も参照のこと
 	std::uniform_real_distribution<> randcosth(-1, 1);
-	double costh = randcosth(physconst::mtrand);
-	double phi = randcosth(physconst::mtrand) * std::numbers::pi;
+	double costh = randcosth(this->mtrand);
+	double phi = randcosth(this->mtrand) * std::numbers::pi;
 	double sinth = std::sqrt(1 - costh * costh);
 	this->velocity_pointing[0] = sinth * std::cos(phi);
 	this->velocity_pointing[1] = sinth * std::sin(phi);
@@ -141,11 +144,11 @@ void mc_particle::angfreq_replace(double temperature, bool kirchhoff, double dt)
 	auto domcp_distribution = this->max_dd(temperature);
 	while (true) {
 		//どのバンド?
-		int pr = randp(physconst::mtrand);
+		int pr = randp(this->mtrand);
 		auto selectedband = *(this->banddata.begin() + pr);
 		auto selecteddist = (mcp_dists.begin() + pr);
 		//結果
-		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), domcp_distribution);
+		auto result = physconst::vonNeumann_rejection(*selecteddist, selectedband->dos_omega_distribution_getter(), domcp_distribution, this->mtrand);
 		
 		if (result.first) {
 			//採用なら...
