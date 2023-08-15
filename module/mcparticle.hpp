@@ -39,6 +39,8 @@ namespace mc_sim{
 			
 			std::shared_ptr<mc_sim::logger> logger;
 			
+			/*! このMC粒子が使用するための乱数器 */
+			std::mt19937_64 mtrand;
 			/*!
 			 * @brief 粒子に弾性散乱を起こす
 			 * @details 弾性散乱(速さが変化せず速度が変化するもの)を起こす
@@ -76,8 +78,9 @@ namespace mc_sim{
 			 * @param Energy 粒子(MC粒子にあらず)のエネルギー \f$\omega\hbar\f$
 			 * @param Temperature 不明 cppを解析されたい
 			 * @param bandinj バンドデータの注入
+			 * @param seed 乱数器のシード
 			*/
-			mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, double temperature, const std::vector<std::shared_ptr<band>>& bandinj);
+			mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, double temperature, const std::vector<std::shared_ptr<band>>& bandinj, uint_fast64_t seed);
 			
 			/*!
 			 * @brief 時間dtの後の状態にMC粒子を遷移させる
