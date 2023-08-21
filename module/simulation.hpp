@@ -19,7 +19,7 @@ class simulation {
 		curve& heat_cap;
 		
 		//どのメッシュにいるのか
-		std::vector<int> square(std::vector<double>);
+		std::array<int, 3> square(const std::vector<double>&);
 		//空間メッシュ分割数
 		std::vector<int> spacemesh;
 		//x方向に進むのを想定することに
@@ -29,8 +29,6 @@ class simulation {
 		
 		/*! 各メッシュごとのMC粒子数 */
 		std::vector<int> mcp_freqdist;
-		/*! 頻度分布mcp_freqdist用mutex */
-		std::vector<std::mutex> mcp_freqdist_mutex;
 		/*!
 		 * @brief 各メッシュにおける粒子の頻度分布を更新する
 		 * @details 頻度分布を計算し, mcp_freqdistを更新する
@@ -58,7 +56,7 @@ class simulation {
 		std::vector<mc_sim::mc_particle> mc_particles;
 		
 		
-		std::vector<std::vector<std::vector<double>>> Temperature;
+		std::vector<double> Temperature;
 		void Particle_move(double dt);
 		void Particle_Disp_output(std::string filename);
 };

@@ -66,10 +66,9 @@ simulation::simulation(int numof_mcp, std::vector<double>& max_r, std::vector<in
 	#pragma omp barrier
 	this->logger->debug("We have just constructed mcparticles.");
 	
-	this->Temperature = std::vector<std::vector<std::vector<double>>>(spacemesh[0], std::vector < std::vector<double>>(spacemesh[1], std::vector<double>(spacemesh[2], 0.0)));
+	this->Temperature = std::vector<double>(std::accumulate(this->spacemesh.begin(), this->spacemesh.end(), 1, std::multiplies<>()), 0.0);
 	this->mcp_freqdist = std::vector<int>(std::accumulate(this->spacemesh.begin(), this->spacemesh.end(), 1, std::multiplies<>()), 0);
-	std::vector<std::mutex> temp_mutex(std::accumulate(this->spacemesh.begin(), this->spacemesh.end(), 1, std::multiplies<>()));
-	this->mcp_freqdist_mutex.swap(temp_mutex);
+	
 	this->freqdist_construct();
 	this->temperature_construct();
 	
@@ -100,47 +99,29 @@ void simulation::Particle_Disp_output(std::string filename) {
 }
 
 void simulation::freqdist_construct(){
-	std::vector<std::future<void>> futures;
+	#pragma omp parallel for
 	for (auto& i: this->mc_particles){
-		futures.push_back(std::async(std::launch::async, [&i, this](){
-			auto coor = this->square(i.position);
-			auto index = this->tempcoor_to_fdlinear({coor[0], coor[1], coor[2]});
-			{
-				std::lock_guard<std::mutex> lock(this->mcp_freqdist_mutex[index]);
-				this->mcp_freqdist[index]++;
-			}
-		}));
+		/* futures.push_back(std::async(std::launch::async, [&i, this](){ */
+		auto index = this->tempcoor_to_fdlinear(this->square(i.position));
+		
+		#pragma omp atomic
+		this->mcp_freqdist[index]++;
+		/* })); */
 	}
-	for (auto& i: futures)i.get();
 }
 
 bool simulation::temperature_construct() {
 	this->logger->debug("We will construct MeshEnergys.");
 	
-	//dTは多分Tの差分
-	//Tの変動が少ないと終わるはず
-	double dT = 0;
 	//meshの体積の逆数
 	const double drpro_inv = 1.0 / std::accumulate(this->dr.begin(), this->dr.end(), 1.0, std::multiplies<>());
 	
-	std::vector<std::future<double>> futures;
-	for(int i = 0 ; i < spacemesh[0];i++){
-		futures.push_back(std::async(std::launch::async, [i, this, &drpro_inv](){
-			double dtpart = 0;
-			for(int j = 0 ; j < spacemesh[1];j++){
-				for(int k = 0 ; k < spacemesh[2];k++){
-					auto index = this->tempcoor_to_fdlinear({i, j, k});
-					double old_Temperature = Temperature[i][j][k];
-					Temperature[i][j][k] = this->heat_cap.itpl_getter(static_cast<double>(this->mcp_freqdist[index]) * this->energy_mcparticles * drpro_inv);
-					dtpart += fabs(old_Temperature - Temperature[i][j][k]);
-				}
-			}
-			return dtpart;
-		}));
+	#pragma omp parallel for
+	for (int i = 0; i < Temperature.size(); i++){
+		Temperature[i] = this->heat_cap.itpl_getter(static_cast<double>(this->mcp_freqdist[i]) * this->energy_mcparticles * drpro_inv);
+		/* dT += fabs(old_Temperature - Temperature[i][j][k]); */
 	}
-	for (auto& i: futures)dT += i.get();
-	/* std::cout << dT << std::endl; */
-	this->logger->info("Temperature table is updated. dT is " + std::to_string(dT));
+	this->logger->debug("Temperature table is updated. dT is null.");
 	/*if (emesh, 3) / 2)return true;
 	else*/ return false;
 }
@@ -150,16 +131,14 @@ void simulation::Particle_move(double dt) {
 	#pragma omp parallel for
 	for (auto& i: this->mc_particles){
 		/* futures.push_back(std::async(std::launch::deferred, [dt, this, &i](){ */
-		auto beforecoor = this->square(i.position);
-		auto beforeindex = this->tempcoor_to_fdlinear({beforecoor[0], beforecoor[1], beforecoor[2]});
+		auto beforeindex = this->tempcoor_to_fdlinear(this->square(i.position));
 		
 		i.nextstep(dt);
-		i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]);
-		std::vector<int> index = this->square(i.position);
-		i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end()));
 		
-		auto aftercoor = this->square(i.position);
-		auto afterindex = this->tempcoor_to_fdlinear({aftercoor[0], aftercoor[1], aftercoor[2]});
+		auto afterindex = this->tempcoor_to_fdlinear(this->square(i.position));
+		
+		i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]);
+		i.scatter(Temperature[afterindex], dt, *std::min_element(this->max_r.begin(), this->max_r.end()));
 		
 		#pragma omp atomic
 		this->mcp_freqdist[beforeindex]--;
@@ -175,10 +154,10 @@ void simulation::Particle_move(double dt) {
 	temperature_construct();
 }
 
-std::vector<int> simulation::square(std::vector<double> position){
-	std::vector<int> res = std::vector<int>();
-	for (int i = 0; i < this->dr.size(); i++){
-		res.push_back(std::clamp(static_cast<int>(std::floor(position[i] / this->dr[i])), 0, spacemesh[i] - 1));
+std::array<int, 3> simulation::square(const std::vector<double>& position){
+	std::array<int, 3> res = {0, 0, 0};
+	for (int i = 0; i < 3; i++){
+		res[i] = (std::clamp(static_cast<int>(std::floor(position[i] / this->dr[i])), 0, spacemesh[i] - 1));
 	}
 	return res;
 }
