@@ -22,7 +22,7 @@ simulation::simulation(int numof_mcp, std::vector<double>& max_r, std::vector<in
 	
 	//メッシュ粗さ[m]
 	this->dr = std::vector<double>();
-	for (int i = 0; i < std::min(max_r.size(), spacemesh.size()); i++){
+	for (int i = 0; i < static_cast<int>(std::min(max_r.size(), spacemesh.size())); i++){
 		this->dr.push_back(this->max_r[i] / static_cast<double>(this->spacemesh[i]));
 	}
 	
@@ -117,7 +117,7 @@ bool simulation::temperature_construct() {
 	const double drpro_inv = 1.0 / std::accumulate(this->dr.begin(), this->dr.end(), 1.0, std::multiplies<>());
 	
 	#pragma omp parallel for
-	for (int i = 0; i < Temperature.size(); i++){
+	for (int i = 0; i < static_cast<int>(Temperature.size()); i++){
 		Temperature[i] = this->heat_cap.itpl_getter(static_cast<double>(this->mcp_freqdist[i]) * this->energy_mcparticles * drpro_inv);
 		/* dT += fabs(old_Temperature - Temperature[i][j][k]); */
 	}
