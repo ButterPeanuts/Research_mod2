@@ -59,4 +59,6 @@ class simulation {
 		std::vector<double> Temperature;
 		void Particle_move(double dt);
 		void Particle_Disp_output(std::string filename);
+		
+		void particle_posinit(const std::function<std::vector<double>()>&);
 };

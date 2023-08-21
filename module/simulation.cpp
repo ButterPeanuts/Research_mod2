@@ -168,3 +168,9 @@ std::array<int, 3> simulation::square(const std::vector<double>& position){
 int simulation::tempcoor_to_fdlinear(const std::array<int, 3>& meshcoor){
 	return meshcoor[2] + meshcoor[1] * this->spacemesh[2] + meshcoor[0] * this->spacemesh[2] * this->spacemesh[1];
 }
+
+void simulation::particle_posinit(const std::function<std::vector<double>()>& posf){
+	for (auto& i: this->mc_particles){
+		i.position = posf();
+	}
+}
