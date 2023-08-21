@@ -151,6 +151,9 @@ void simulation::Particle_move(double dt) {
 	/* for (auto& i: futures){ */
 	/* 	i.get(); */
 	/* } */
+	if (std::accumulate(mcp_freqdist.begin(), mcp_freqdist.end(), 0) != static_cast<int>(this->mc_particles.size())){
+		this->logger->debug("mcp_freqdist is INVALID!!!");
+	}
 	temperature_construct();
 }
 
