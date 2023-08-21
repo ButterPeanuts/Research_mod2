@@ -146,41 +146,32 @@ bool simulation::temperature_construct() {
 }
 
 void simulation::Particle_move(double dt) {
-	/* #pragma omp parallel for */
-	/* for(int j = 0;j < static_cast<int>(MCParticles.size());j++){ */
-	/* 	mc_particles::MCParticles& i = MCParticles[j]; */
-	/* 	i.nextstep(dt); */
-	/* 	i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]); */
-	/* 	std::vector<int> index = this->square(i.position); */
-	/* 	i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end())); */
-	/* } */
-	/* #pragma omp barrier */
-	std::vector<std::future<void>> futures;
+	/* std::vector<std::future<void>> futures; */
+	#pragma omp parallel for
 	for (auto& i: this->mc_particles){
-		futures.push_back(std::async(std::launch::deferred, [dt, this, &i](){
-			auto beforecoor = this->square(i.position);
-			auto beforeindex = this->tempcoor_to_fdlinear({beforecoor[0], beforecoor[1], beforecoor[2]});
-			
-			i.nextstep(dt);
-			i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]);
-			std::vector<int> index = this->square(i.position);
-			i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end()));
-			
-			auto aftercoor = this->square(i.position);
-			auto afterindex = this->tempcoor_to_fdlinear({aftercoor[0], aftercoor[1], aftercoor[2]});
-			{
-				std::lock_guard<std::mutex> lock(this->mcp_freqdist_mutex[beforeindex]);
-				this->mcp_freqdist[beforeindex]--;
-			}
-			{
-				std::lock_guard<std::mutex> lock(this->mcp_freqdist_mutex[afterindex]);
-				this->mcp_freqdist[afterindex]++;
-			}
-		}));
+		/* futures.push_back(std::async(std::launch::deferred, [dt, this, &i](){ */
+		auto beforecoor = this->square(i.position);
+		auto beforeindex = this->tempcoor_to_fdlinear({beforecoor[0], beforecoor[1], beforecoor[2]});
+		
+		i.nextstep(dt);
+		i.boundaryscatter_b(this->max_r[0], this->max_r[1], this->max_r[2]);
+		std::vector<int> index = this->square(i.position);
+		i.scatter(Temperature[index[0]][index[1]][index[2]], dt, *std::min_element(this->max_r.begin(), this->max_r.end()));
+		
+		auto aftercoor = this->square(i.position);
+		auto afterindex = this->tempcoor_to_fdlinear({aftercoor[0], aftercoor[1], aftercoor[2]});
+		
+		#pragma omp atomic
+		this->mcp_freqdist[beforeindex]--;
+		
+		#pragma omp atomic
+		this->mcp_freqdist[afterindex]++;
+		/* })); */
 	}
-	for (auto& i: futures){
-		i.get();
-	}
+	#pragma omp barrier
+	/* for (auto& i: futures){ */
+	/* 	i.get(); */
+	/* } */
 	temperature_construct();
 }
 
