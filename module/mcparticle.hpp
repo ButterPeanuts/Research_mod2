@@ -9,14 +9,14 @@
 #include<band.hpp>
 #include<logger.hpp>
 #include<memory>
-/**
- * @brief モンテカルロ粒子のクラス
- * @details モンテカルロ粒子 略してMCParticle
- * 久木田(2014)(https://doi.org/10.18910/34463)のp.21で語られる概念
- * 簡単にするならばエネルギーEnergyを持つ粒子複数個の集まり
- * 一つのMC粒子について持つエネルギー(つまりEnergyと粒子の数の積)は一定
-*/
 namespace mc_sim{
+	/**
+	 * @brief モンテカルロ粒子のクラス
+	 * @details モンテカルロ粒子 略してMCParticle
+	 * 久木田(2014)(https://doi.org/10.18910/34463)のp.21で語られる概念
+	 * 簡単にするならばエネルギーEnergyを持つ粒子複数個の集まり
+	 * 一つのMC粒子について持つエネルギー(つまりEnergyと粒子の数の積)は一定
+	*/
 	class mc_particle{
 		private :
 			/*! 空間の次元 何のために一般化しているのかはわかりません */

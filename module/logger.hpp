@@ -5,13 +5,13 @@
  * @date 2023-05-17
 */
 #pragma once
-/**
- * @brief "ログクラス"のインターフェース spdlogへの依存を避けたい
-*/
 
 #include <string>
 #include <memory>
 namespace mc_sim{
+	/**
+	 * @brief "ログクラス"のインターフェース spdlogへの依存を避けたい
+	*/
 	class logger{
 		public:
 		/*!
