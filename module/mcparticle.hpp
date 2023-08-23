@@ -1,5 +1,5 @@
 /*!
- * @file mcparticles.hpp
+ * @file mcparticle.hpp
  * @brief モンテカルロ粒子の定義に関わる部分
  * @author ButterPeanuts
  * @date 2023-04-12
