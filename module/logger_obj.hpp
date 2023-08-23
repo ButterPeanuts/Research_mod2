@@ -14,24 +14,24 @@
 */
 
 #include <spdlog/spdlog.h>
-#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/async.h>
 #include <string>
 #include <logger.hpp>
 namespace mc_sim{
 	class logger_obj : public logger{
 		private:
 			/*! spdlogのロガー このクラスが直接操作するところ */
-			std::shared_ptr<spdlog::logger> logger_interface;
+			std::shared_ptr<spdlog::async_logger> logger_interface;
 			
 			/*! spdlogのシンク ロガーからロガーを作るときに使う */
-			std::shared_ptr<spdlog::sinks::basic_file_sink_mt> logger_sink;
+			std::vector<spdlog::sink_ptr> logger_sinks;
 			
 			/*!
 			 * @brief コンストラクタ
 			 * @param logger_name ロガーの表示名
 			 * @param sink ロガーのシンク
 			*/
-			logger_obj(std::string logger_name, std::shared_ptr<spdlog::sinks::basic_file_sink_mt> sink);
+			logger_obj(std::string logger_name, std::vector<spdlog::sink_ptr> sinks);
 			
 			/*!
 			 * @brief 設定済みのシンクからロガーインターフェースを設定する
