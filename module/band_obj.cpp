@@ -96,7 +96,7 @@ double band_obj::scatprob_b(double gvelocity, double l, double dt){
 
 double band_obj::mintau(double tmax, double l){
 	auto& scat = this->bands_scatconst;
-	double omegamax = this->dos_leftedge();
+	double omegamax = this->dos_rightedge();
 	double gvelocitymax = this->gvelocity.max();
 	return 1 / (scat.tau_u_inv(omegamax, tmax) + scat.tau_d_inv(omegamax) + scat.tau_b_inv(gvelocitymax, l));
 }

@@ -6,7 +6,7 @@
 static std::random_device thrand;
 
 std::mt19937_64 physconst::mtrand(thrand());
-std::pair<bool, double> physconst::vonNeumann_rejection(const std::function<double(double)>& f, const std::uniform_real_distribution<>& xdist, const std::uniform_real_distribution<>& fdist, std::mt19937_64& engine){
+std::pair<bool, double> physconst::vonNeumann_rejection(std::function<double(double)>& f, std::uniform_real_distribution<>&& xdist, std::uniform_real_distribution<>& fdist, std::mt19937_64& engine){
 	double xr = xdist(engine);
 	double fr = fdist(engine);
 	if (fr <= f(xr))return {true, xr};

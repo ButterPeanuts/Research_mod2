@@ -10,8 +10,8 @@ project(mc_sim)
 #---設定
 #compile_commands.jsonを生成する
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-add_compile_options("$<$<CONFIG:Debug>:-g>")
-add_compile_options("$<$<CONFIG:Debug>:-O0>")
+# add_compile_options("$<$<CONFIG:Debug>:-g>")
+# add_compile_options("$<$<CONFIG:Debug>:-O0>")
 
 #Debug/Releaseのどちらのビルドかコンパイラにわたす
 #set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DBUILD_TYPE=\\\"Debug\\\"")

@@ -26,7 +26,13 @@ logger_obj::logger_obj(std::string logger_name, std::vector<spdlog::sink_ptr> si
 
 //シンクを設定済みの状態からインターフェースを作る
 void logger_obj::set_interface(std::string logger_name){
-	this->logger_interface = std::make_shared<spdlog::async_logger>(logger_name, this->logger_sinks.begin(), this->logger_sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
+	this->logger_interface = std::make_shared<spdlog::logger>(logger_name, this->logger_sinks.begin(), this->logger_sinks.end());
+	#ifdef MC_SIM_DEBUG
+		this->logger_interface->set_level(spdlog::level::debug);
+	#else
+		this->logger_interface->set_level(spdlog::level::info);
+	#endif
+	spdlog::register_logger(this->logger_interface);
 	
 	this->debug("This logger is born now!");
 }

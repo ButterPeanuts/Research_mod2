@@ -12,6 +12,9 @@
 using namespace mc_sim;
 
 mc_particle::mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, double temperature, const std::vector<std::shared_ptr<band>>& bandinj, uint_fast64_t seed) : banddata(bandinj), logger(newlogger){
+	//乱数器を生成
+	this->mtrand = std::mt19937_64(seed);
+	
 	//速度方向のベクトルを作る
 	this->velocity_pointing = std::vector<double>(mc_particle::dimension, 0);
 	
@@ -21,9 +24,6 @@ mc_particle::mc_particle(const std::shared_ptr<mc_sim::logger>& newlogger, doubl
 	
 	//変位の初期状態を決定
 	this->position = std::vector<double>(mc_particle::dimension, 0);
-	
-	//乱数器を生成
-	this->mtrand = std::mt19937_64(seed);
 }
 
 void mc_particle::nextstep(double dt) {
@@ -46,6 +46,7 @@ void mc_particle::boundaryscatter_b(double max_x, double max_y, double max_z) {
 		double sin_newtheta = std::sqrt(1 - cos_newtheta * cos_newtheta);
 		velocity_pointing[0] *= sin_newtheta;
 		velocity_pointing[2] *= sin_newtheta;
+		this->logger->info("Reflec");
 	}
 	if ((this->position)[0] < 0 || max_x < this->position[0]) {
 		std::uniform_real_distribution<> randR(0, 1);
@@ -57,6 +58,7 @@ void mc_particle::boundaryscatter_b(double max_x, double max_y, double max_z) {
 		double sin_newtheta = std::sqrt(1 - cos_newtheta * cos_newtheta);
 		velocity_pointing[1] *= sin_newtheta;
 		velocity_pointing[2] *= sin_newtheta;
+		this->logger->info("Reflec");
 	}
 	if ((this->position)[2] < 0 || max_z < this->position[2]) {
 		std::uniform_real_distribution<> randR(0, 1);
@@ -68,6 +70,7 @@ void mc_particle::boundaryscatter_b(double max_x, double max_y, double max_z) {
 		double sin_newtheta = std::sqrt(1 - cos_newtheta * cos_newtheta);
 		velocity_pointing[0] *= sin_newtheta;
 		velocity_pointing[1] *= sin_newtheta;
+		this->logger->info("Reflec");
 	}
 }
 
@@ -75,17 +78,19 @@ void mc_particle::scatter(double temperature,double dt,double min_structure) {
 	//バンド情報
 	auto band = this->band_current;
 	
-	//フォノン相互散乱(ウムクラップ散乱)
-	double tui = band->a() * std::pow(this->angular_frequency, band->chi()) * std::pow(temperature, band->xi()) * std::exp(-band->b() / temperature);
-	//欠陥散乱
-	double tdi = band->c() * pow(this->angular_frequency, 4);
-	//境界散乱A
-	double tbi = band->gvelocity_getter(this->angular_frequency) * min_structure * band->f();
+	/* //フォノン相互散乱(ウムクラップ散乱) */
+	/* double tui = band->a() * std::pow(this->angular_frequency, band->chi()) * std::pow(temperature, band->xi()) * std::exp(-band->b() / temperature); */
+	/* //欠陥散乱 */
+	/* double tdi = band->c() * pow(this->angular_frequency, 4); */
+	/* //境界散乱A */
+	/* double tbi = band->gvelocity_getter(this->angular_frequency) / min_structure / band->f(); */
 	
 	//非弾性散乱の確率
-	double pnes = 1 - std::exp(-dt * tui);
+	/* double pnes = 1 - std::exp(-dt * tui); */
+	double pnes = band->scatprob_u(this->angular_frequency, temperature, dt);
 	//弾性散乱の確率
-	double pes = 1 - std::exp(-dt * (tdi + tbi));
+	/* double pes = (1 - std::exp(-dt * tdi)); */
+	double pes = band->scatprob_d(this->angular_frequency, dt) + band->scatprob_b(band->gvelocity_getter(this->angular_frequency), min_structure, dt);
 	if (1 < pnes + pes){
 		//確率がおかしいとき(散乱確率が1以上)は警告を発する
 		this->logger->warn("Probability of scattering is 1 or more!");
