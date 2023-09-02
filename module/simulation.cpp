@@ -8,6 +8,7 @@
 #include<iostream>
 #include<mutex>
 #include<array>
+#include<iomanip>
 
 #include"simulation.hpp"
 #include"mcparticle.hpp"
@@ -93,7 +94,7 @@ void simulation::Particle_Disp_output(std::string filename) {
 		return;
 	}
 	for (auto i = this->mc_particles.begin(); i < this->mc_particles.end(); i++) {
-		files << i->position[0] << ", "<<i->position[1] <<", "<<i->position[2] <<std::endl;
+		files << std::scientific << std::setprecision(10) << i->position[0] << ", "<<i->position[1] <<", "<<i->position[2] << std::endl;
 	}
 	files.close();
 }
@@ -151,9 +152,9 @@ void simulation::Particle_move(double dt) {
 	/* for (auto& i: futures){ */
 	/* 	i.get(); */
 	/* } */
-	if (std::accumulate(mcp_freqdist.begin(), mcp_freqdist.end(), 0) != static_cast<int>(this->mc_particles.size())){
-		this->logger->debug("mcp_freqdist is INVALID!!!");
-	}
+	/* if (std::accumulate(mcp_freqdist.begin(), mcp_freqdist.end(), 0) != static_cast<int>(this->mc_particles.size())){ */
+	/* 	this->logger->debug("mcp_freqdist is INVALID!!!"); */
+	/* } */
 	temperature_construct();
 }
 

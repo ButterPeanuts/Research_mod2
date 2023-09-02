@@ -21,7 +21,7 @@ namespace mc_sim{
 	class logger_obj : public logger{
 		private:
 			/*! spdlogのロガー このクラスが直接操作するところ */
-			std::shared_ptr<spdlog::async_logger> logger_interface;
+			std::shared_ptr<spdlog::logger> logger_interface;
 			
 			/*! spdlogのシンク ロガーからロガーを作るときに使う */
 			std::vector<spdlog::sink_ptr> logger_sinks;

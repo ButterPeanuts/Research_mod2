@@ -97,6 +97,9 @@ std::pair<curve, curve> massconst::dos_domcpmax_tetrahedron(mc_sim::brillouin_zo
 }
 
 std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillouin_zone& bz){
+	//ndivを事前に取得しておく
+	int ndiv = bz.ndiv_getter();
+	
 	//仮のカーブ 外部から書き込み可能にしたいためこの形式
 	std::vector<std::pair<double, double>> pscurve;
 	//角周波数0を最初に入れておく
@@ -108,9 +111,6 @@ std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillo
 	for (double omega = omega_a; omega < omega_max; omega *= omega_r){
 		pscurve.emplace_back(omega, 0.0);
 	}
-	
-	//ndivを事前に取得しておく
-	int ndiv = bz.ndiv_getter();
 	
 	//四面体の頂点の各周波数を入れるarray
 	std::array<double, 4> omega_edge;
@@ -200,7 +200,7 @@ std::vector<std::pair<double, double>> massconst::dos_tetrahedron(mc_sim::brillo
 	}
 	
 	//定数部分を補正
-	const double intconst = 1 / (massconst::si_lattice_constant * massconst::si_lattice_constant * massconst::si_lattice_constant * 6.0 * ndiv * ndiv * ndiv);
+	const double intconst = 8 / (massconst::si_lattice_constant * massconst::si_lattice_constant * massconst::si_lattice_constant * 6.0 * ndiv * ndiv * ndiv);
 	std::for_each(pscurve.begin(), pscurve.end(), [&intconst](std::pair<double, double>& x){x.second *= intconst;});
 	return pscurve;
 }
