@@ -134,10 +134,11 @@ void mc_particle::angfreq_replace(double temperature, bool kirchhoff, double dt)
 	
 	//MC粒子分布関数
 	std::vector<std::function<double(double)>> mcp_dists;
+	const double scatprob_u_max_inv = 1 / this->max_scatprob_u(temperature, dt);
 	for (std::shared_ptr<band> selectedband: this->banddata){
 		if (kirchhoff){
-			mcp_dists.push_back([temperature, selectedband, dt](double omega) -> double{
-				return selectedband->scatprob_u(omega, temperature, dt) * physconst::bedist2(omega, temperature, selectedband->dos_getter(omega) * physconst::dirac * omega);
+			mcp_dists.push_back([temperature, selectedband, dt, scatprob_u_max_inv](double omega) -> double{
+				return selectedband->scatprob_u(omega, temperature, dt) * scatprob_u_max_inv * physconst::bedist2(omega, temperature, selectedband->dos_getter(omega) * physconst::dirac * omega);
 			});
 		}else{
 			mcp_dists.push_back([temperature, selectedband](double omega) -> double{
@@ -170,4 +171,14 @@ void mc_particle::angfreq_replace(double temperature, bool kirchhoff, double dt)
 
 std::uniform_real_distribution<double> mc_particle::max_dd(double t){
 	return (*std::max_element(banddata.begin(), banddata.end(), [t](const std::shared_ptr<band>& a, const std::shared_ptr<band>& b){return (a->domcp_distribution_getter(t).max() <= b->domcp_distribution_getter(t).max());}))->domcp_distribution_getter(t);
+}
+
+double mc_particle::max_scatprob_u(double t, double dt){
+	double mintau_u_inv = 0;
+	for (auto& band: banddata){
+		double temp_tauu_inv = band->tau_u_inv(band->dos_rightedge(), t);
+		//緩和時間tau_uの最小値, 時間あたり散乱確率tau_u_inv(tau_u^-1)の最大値を求めているため
+		if (mintau_u_inv < temp_tauu_inv ) mintau_u_inv = temp_tauu_inv;
+	}
+	return -std::expm1(-dt * mintau_u_inv);
 }

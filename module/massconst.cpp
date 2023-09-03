@@ -366,3 +366,20 @@ double massconst::Si_group_velocity(double angular_frequency, int bandnum) {
 	}
 };
 */
+
+curve massconst::mintauu_inv_curve_construct(std::vector<std::shared_ptr<band>> banddata, std::shared_ptr<mc_sim::logger>& newlogger){
+	//比熱(Heat_cap)の計算
+	curve t_mintauuinv(newlogger);
+	
+	for (int t = 0; t <= massconst::heatcaps_tempmax; t++){
+		double temperature = static_cast<double>(t);
+		double mintau_u_inv = 0;
+		for (auto& band: banddata){
+			double temp_tauu_inv = band->tau_u_inv(band->dos_rightedge(), temperature);
+			//緩和時間tau_uの最小値, 時間あたり散乱確率tau_u_inv(tau_u^-1)の最大値を求めているため
+			if (mintau_u_inv < temp_tauu_inv ) mintau_u_inv = temp_tauu_inv;
+		}
+		t_mintauuinv.append(temperature, mintau_u_inv);
+	}
+	return t_mintauuinv;
+}

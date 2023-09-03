@@ -126,6 +126,12 @@ class band{
 	*/
 	virtual double scatprob_u(double, double, double) = 0;
 	/*!
+	 * @brief フォノン-フォノン散乱確率(時間あたり)
+	 * @param double 角周波数\f$\omega\f$
+	 * @param double 温度\f$T\f$
+	*/
+	virtual double tau_u_inv(double, double) = 0;
+	/*!
 	 * @brief フォノン-欠陥散乱確率
 	 * @param double 角周波数\f$\omega\f$
 	 * @param double 経過時間\f$\Delta t\f$

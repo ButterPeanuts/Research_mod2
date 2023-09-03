@@ -86,6 +86,15 @@ class massconst {
 		static curve heatcap_curve_construct(std::vector<std::shared_ptr<band>>, std::shared_ptr<mc_sim::logger>&);
 		
 		/*!
+		 * @brief band情報から温度-時間あたり非弾性散乱確率の最高値特性を計算する
+		 * @detail 時間あたり散乱確率は緩和時間の逆数
+		 * @param std::vector<std::shared_ptr<band>> band情報たち
+		 * @param std::shared_ptr<mc_sim::logger>& curveに入れるlogger
+		 * @return curve 比熱の関数curve
+		*/
+		static curve mintauu_inv_curve_construct(std::vector<std::shared_ptr<band>>, std::shared_ptr<mc_sim::logger>&);
+		
+		/*!
 		 * @brief band情報から温度とエネルギー体積密度の相互変換を行えるcurveを計算する
 		 * @param std::vector<std::shared_ptr<band>> band情報たち
 		 * @param std::shared_ptr<mc_sim::logger>& curveに入れるlogger
