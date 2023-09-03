@@ -67,6 +67,13 @@ namespace mc_sim{
 			 * @param double 温度
 			*/
 			std::uniform_real_distribution<double> max_dd(double);
+			
+			/*!
+			 * @brief 特定温度, 進行時間下におけるウムクラップ散乱確率の最大値
+			 * @param double 温度
+			 * @param double 進行時間dt
+			*/
+			double max_scatprob_u(double, double);
 		
 		public :
 			/*! 変位 */
